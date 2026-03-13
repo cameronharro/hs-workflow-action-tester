@@ -66,6 +66,17 @@
         }
       }
     },
+    "functions": [
+      {
+        "functionType": "PRE_ACTION_EXECUTION",
+        "functionSource": "exports.main = function(event, callback) { return callback(transformRequest(event)); }\nfunction transformRequest(request) { return { webhookUrl: request.webhookUrl, body: JSON.stringify(request.fields), contentType: 'application/x-www-form-urlencoded', accept: 'application/json', httpMethod: 'POST' }; }"
+      },
+      {
+        "functionType": "PRE_FETCH_OPTIONS",
+        "id": "widgetSize",
+        "functionSource": "exports.main = function(event, callback) { return callback(transformRequest(event)); }\nfunction transformRequest(request) { return { webhookUrl: request.webhookUrl + '?color=' + request.fields.widgetColor.value, body: JSON.stringify(request.fields), httpMethod: 'GET' }; }"
+      }
+    ],
     "objectTypes": ["CONTACT"],
     "outputFields": [
       {

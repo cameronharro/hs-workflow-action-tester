@@ -1,0 +1,94 @@
+{
+  "uid": "test_action",
+  "type": "workflow-action",
+  "config": {
+    "actionUrl": "https://webhook.site/c5db800b-e3c3-4a16-af81-1e19f6d8b6a0",
+    "isPublished": false,
+    "executionRules": [
+      {
+        "labelName": "success",
+        "conditions": {
+          "status": ["success"]
+        }
+      },
+      {
+        "labelName": "failure",
+        "conditions": {
+          "status": ["failure"]
+        }
+      }
+    ],
+    "functions": [],
+    "inputFieldDependencies": [],
+    "inputFields": [
+      {
+        "isRequired": true,
+        "supportedValueTypes": ["STATIC_VALUE"],
+        "typeDefinition": {
+          "fieldType": "text",
+          "name": "label",
+          "options": [],
+          "type": "string"
+        }
+      },
+      {
+        "isRequired": true,
+        "supportedValueTypes": ["STATIC_VALUE"],
+        "typeDefinition": {
+          "fieldType": "text",
+          "name": "value",
+          "options": [],
+          "type": "string"
+        }
+      }
+    ],
+    "labels": {
+      "en": {
+        "actionName": "Test Action",
+        "executionRules": {
+          "success": "Action Succeeded!",
+          "failure": "Action Failed."
+        },
+        "inputFieldLabels": {
+          "label": "Label",
+          "value": "Value"
+        },
+        "inputFieldDescriptions": {
+          "label": "",
+          "value": ""
+        },
+        "inputFieldOptionLabels": {
+          "label": {},
+          "value": {}
+        },
+        "outputFieldLabels": {
+          "status": "Status"
+        }
+      }
+    },
+    "objectTypes": ["CONTACT"],
+    "outputFields": [
+      {
+        "typeDefinition": {
+          "externalOptions": false,
+          "options": [
+            {
+              "displayOrder": 1,
+              "label": "Success",
+              "value": "success"
+            },
+            {
+              "displayOrder": 2,
+              "label": "Failure",
+              "value": "failure"
+            }
+          ],
+          "type": "enumeration",
+          "name": "status",
+          "label": "Status"
+        }
+      }
+    ],
+    "supportedClients": [{ "client": "WORKFLOWS" }]
+  }
+}

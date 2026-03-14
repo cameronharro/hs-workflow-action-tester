@@ -12,6 +12,7 @@ type InputField struct {
 	value string
 }
 type TestCase struct {
+	ActionUID              string
 	InputFields            []InputField
 	ExpectedExecutionLabel string
 }
@@ -46,6 +47,8 @@ func parse(data io.Reader) ([]TestCase, error) {
 		c := TestCase{}
 		for j, col := range record {
 			switch headers[j] {
+			case "actionUID":
+				c.ActionUID = col
 			case "expectedExecutionLabel":
 				c.ExpectedExecutionLabel = col
 			default:
@@ -55,6 +58,9 @@ func parse(data io.Reader) ([]TestCase, error) {
 				}
 				c.InputFields = append(c.InputFields, field)
 			}
+		}
+		if c.ActionUID == "" {
+			return nil, errors.New("No actionUID provided")
 		}
 		result[i] = c
 	}

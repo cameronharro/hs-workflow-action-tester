@@ -16,10 +16,11 @@ func TestParse(t *testing.T) {
 	cases := []Case{
 		{
 			label:     "Should pass",
-			csvString: "label,value,expectedExecutionLabel\nBrian Halligan,1234,Success\nMaria Johnson,9876,Failure",
+			csvString: "label,value,expectedExecutionLabel,actionUID\nBrian Halligan,1234,Success,test_action\nMaria Johnson,9876,Failure,new_action",
 			wantErr:   false,
 			result: []TestCase{
 				{
+					"test_action",
 					[]InputField{
 						{
 							name:  "label",
@@ -33,6 +34,7 @@ func TestParse(t *testing.T) {
 					"Success",
 				},
 				{
+					"new_action",
 					[]InputField{
 						{
 							name:  "label",
@@ -55,6 +57,11 @@ func TestParse(t *testing.T) {
 		{
 			label:     "Error - no records",
 			csvString: "label,value,expectedExecutionLabel",
+			wantErr:   true,
+		},
+		{
+			label:     "Error - no actionUID",
+			csvString: "label,value,expectedExecutionLabel\nBrian Halligan,1234,Success\nMaria Johnson,9876,Failure",
 			wantErr:   true,
 		},
 	}

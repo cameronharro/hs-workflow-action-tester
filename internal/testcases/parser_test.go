@@ -23,12 +23,12 @@ func TestParse(t *testing.T) {
 					"test_action",
 					[]InputField{
 						{
-							name:  "label",
-							value: "Brian Halligan",
+							Name:  "label",
+							Value: "Brian Halligan",
 						},
 						{
-							name:  "value",
-							value: "1234",
+							Name:  "value",
+							Value: "1234",
 						},
 					},
 					"Success",
@@ -37,12 +37,12 @@ func TestParse(t *testing.T) {
 					"new_action",
 					[]InputField{
 						{
-							name:  "label",
-							value: "Maria Johnson",
+							Name:  "label",
+							Value: "Maria Johnson",
 						},
 						{
-							name:  "value",
-							value: "9876",
+							Name:  "value",
+							Value: "9876",
 						},
 					},
 					"Failure",

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/hsserver"
@@ -19,8 +20,11 @@ func main() {
 	}
 
 	server := hsserver.NewHSServer("1234", "http://localhost:8080")
-	err = server.SendRequest(actionDefinitions[0], testCases[0])
-	if err != nil {
-		log.Fatal(err.Error())
+
+	for _, testCase := range testCases {
+		err = runTestCase(server, testCase, actionDefinitions)
+		if err != nil {
+			fmt.Print(err)
+		}
 	}
 }

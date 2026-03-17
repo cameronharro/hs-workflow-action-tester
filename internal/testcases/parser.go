@@ -8,8 +8,8 @@ import (
 )
 
 type InputField struct {
-	name  string
-	value string
+	Name  string
+	Value string
 }
 type TestCase struct {
 	ActionUID              string
@@ -53,8 +53,8 @@ func parse(data io.Reader) ([]TestCase, error) {
 				c.ExpectedExecutionLabel = col
 			default:
 				field := InputField{
-					name:  headers[j],
-					value: col,
+					Name:  headers[j],
+					Value: col,
 				}
 				c.InputFields = append(c.InputFields, field)
 			}

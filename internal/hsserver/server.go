@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -53,11 +54,29 @@ func (s *HSServer) SendRequest(actionDef actiondefinition.ActionDefinition, test
 }
 
 func createBody(actionDef actiondefinition.ActionDefinition, testCase testcases.TestCase) (*bytes.Buffer, error) {
-	type Body struct {
-		ActionDef actiondefinition.ActionDefinition
-		TestCase  testcases.TestCase
+	type Origin struct {
+		PortalID int `json:"portalId"`
 	}
-	body := Body{actionDef, testCase}
+	type Object struct {
+		ObjectID   int    `json:"objectId"`
+		ObjectType string `json:"objectType"`
+	}
+	type Body struct {
+		CallbackID string         `json:"callbackId"`
+		Origin     Origin         `json:"origin"`
+		Object     Object         `json:"object"`
+		Fields     map[string]any `json:"fields"`
+	}
+
+	fields := map[string]any{}
+	for _, inputField := range testCase.InputFields {
+		name := inputField.Name
+		fields[name] = inputField.Value
+	}
+	body := Body{
+		CallbackID: fmt.Sprintf("ap-%d-%d-0-1", rand.Int(), rand.Int()),
+		Fields:     fields,
+	}
 	data, err := json.Marshal(body)
 	if err != nil {
 		return nil, err

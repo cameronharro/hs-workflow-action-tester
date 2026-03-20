@@ -2,8 +2,8 @@ const module = { exports: {} };
 const { exports } = module;
 
 type Envelope = {
-  data: Record<string, any>;
-  code: string;
+  event: Record<string, any>;
+  function: string;
 };
 async function readEnvelope(): Promise<Envelope> {
   const buf = new Uint8Array(100);
@@ -16,8 +16,8 @@ async function readEnvelope(): Promise<Envelope> {
   const envelope = JSON.parse(str);
   if (
     typeof envelope === "object" &&
-    "data" in envelope &&
-    "code" in envelope
+    "event" in envelope &&
+    "function" in envelope
   ) {
     return envelope;
   }
@@ -27,7 +27,7 @@ async function readEnvelope(): Promise<Envelope> {
 async function main() {
   try {
     const envelope = await readEnvelope();
-    eval(envelope.code);
+    eval(envelope.function);
     Deno.exit(0);
   } catch (e) {
     console.error(e);

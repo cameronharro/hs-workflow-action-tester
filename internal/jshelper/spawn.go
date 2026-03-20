@@ -10,8 +10,25 @@ import (
 )
 
 type Envelope struct {
-	Data RequestParams `json:"data"`
-	Code string        `json:"code"`
+	Event    Event  `json:"event"`
+	Function string `json:"function"`
+}
+
+type FunctionType string
+
+const (
+	PreActionExecution  FunctionType = "PRE_ACTION_EXECUTION"
+	PostActionExecution FunctionType = "POST_ACTION_EXECUTION"
+	PreFetchOptions     FunctionType = "PRE_FETCH_OPTIONS"
+	PostFetchOptions    FunctionType = "POST_FETCH_OPTIONS"
+)
+
+type Event interface {
+	getEventType() FunctionType
+}
+
+type CallbackData interface {
+	getCallbackType() FunctionType
 }
 
 type Method string
@@ -24,6 +41,10 @@ const (
 	Delete Method = "DELETE"
 )
 
+func getAllMethods() []Method {
+	return []Method{Get, Post, Patch, Put, Delete}
+}
+
 type RequestParams struct {
 	URL     string            `json:"url"`
 	Method  Method            `json:"method"`
@@ -31,26 +52,40 @@ type RequestParams struct {
 	Body    map[string]any    `json:"body"`
 }
 
-func Spawn(data RequestParams, code string) (transformedData RequestParams, err error) {
+func RunFunction(event Event, function string) (CallbackData, error) {
+	switch event.(type) {
+	case PreActionEvent:
+		return spawn(event, function, validatePreAction)
+
+	default:
+		return PreActionCallback{}, fmt.Errorf("Invalid event type for %v", event)
+	}
+}
+
+func spawn[T Event, V CallbackData](event T, function string, validator func(d []byte) (V, error)) (callbackData V, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	c := exec.CommandContext(ctx, "deno", "run", "--deny-read", "--deny-write", "--deny-net", "--deny-env", "--deny-run", "--deny-ffi", "--deny-sys", "--deny-import", "./jsHelper.ts")
 	envelope := Envelope{
-		Data: data,
-		Code: code,
+		Event:    event,
+		Function: function,
 	}
 	jsonBytes, err := json.Marshal(envelope)
 	if err != nil {
-		return RequestParams{}, err
+		return *new(V), err
 	}
 
 	c.Stdin = bytes.NewReader(jsonBytes)
 	out, err := c.Output()
 	if err != nil {
-		return RequestParams{}, err
+		return *new(V), err
 	}
 
-	fmt.Println(string(out))
-	return RequestParams{}, nil
+	callbackData, err = validator(out)
+	if err != nil {
+		return *new(V), err
+	}
+
+	return callbackData, nil
 }

@@ -13,31 +13,31 @@ import (
 func TestSpawn(t *testing.T) {
 	type TestCase struct {
 		Name      string
-		Data      jshelper.RequestParams
-		Code      string
+		Event     jshelper.Event
+		Function  string
 		ExpectErr bool
-		ExpectVal jshelper.RequestParams
+		ExpectVal jshelper.CallbackData
 	}
 	testCases := []TestCase{
 		{
 			Name:      "Hello world",
-			Data:      jshelper.RequestParams{},
-			Code:      `console.log("Hello world!")`,
-			ExpectErr: false,
-			ExpectVal: jshelper.RequestParams{},
+			Event:     jshelper.PreActionEvent{},
+			Function:  `console.log("Hello world!")`,
+			ExpectErr: true,
+			ExpectVal: jshelper.PreActionCallback{},
 		},
 		{
 			Name:      "Infinite Loop",
-			Data:      jshelper.RequestParams{},
-			Code:      `while(true){}`,
+			Event:     jshelper.PreActionEvent{},
+			Function:  `while(true){}`,
 			ExpectErr: true,
-			ExpectVal: jshelper.RequestParams{},
+			ExpectVal: jshelper.PreActionCallback{},
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
-			result, err := jshelper.Spawn(testCase.Data, testCase.Code)
+			result, err := jshelper.RunFunction(testCase.Event, testCase.Function)
 			if err != nil != testCase.ExpectErr {
 				if err == nil {
 					t.Fatal("Expected Error but got nil")

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -52,17 +53,10 @@ type RequestParams struct {
 	Body    map[string]any    `json:"body"`
 }
 
-func RunFunction(event Event, function string) (CallbackData, error) {
-	switch event.(type) {
-	case PreActionEvent:
-		return spawn(event, function, validatePreAction)
-
-	default:
-		return PreActionCallback{}, fmt.Errorf("Invalid event type for %v", event)
-	}
-}
-
 func spawn[T Event, V CallbackData](event T, function string, validator func(d []byte) (V, error)) (callbackData V, err error) {
+	if !strings.Contains(function, "exports.main = (") {
+		return *new(V), fmt.Errorf("%s definition lacks exports.main assigment: %s", event.getEventType(), function)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 

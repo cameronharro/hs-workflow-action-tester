@@ -10,13 +10,13 @@ import (
 	"github.com/cameronharro/hs-workflow-tester/internal/jshelper"
 )
 
-func TestSpawn(t *testing.T) {
+func TestRunPreActionFunction(t *testing.T) {
 	type TestCase struct {
 		Name      string
-		Event     jshelper.Event
+		Event     jshelper.PreActionEvent
 		Function  string
 		ExpectErr bool
-		ExpectVal jshelper.CallbackData
+		ExpectVal jshelper.PreActionCallback
 	}
 	testCases := []TestCase{
 		{
@@ -37,7 +37,7 @@ func TestSpawn(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
-			result, err := jshelper.RunFunction(testCase.Event, testCase.Function)
+			result, err := jshelper.RunPreActionFunction(testCase.Event, testCase.Function)
 			if err != nil != testCase.ExpectErr {
 				if err == nil {
 					t.Fatal("Expected Error but got nil")

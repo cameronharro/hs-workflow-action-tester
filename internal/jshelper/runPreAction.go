@@ -45,6 +45,6 @@ func validatePreAction(data []byte) (PreActionCallback, error) {
 	return result, nil
 }
 
-func SpawnPreActionFunction(event PreActionEvent, function string) (PreActionCallback, error) {
+func RunPreActionFunction(event PreActionEvent, function string) (PreActionCallback, error) {
 	return spawn(event, function, validatePreAction)
 }

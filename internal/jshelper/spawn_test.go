@@ -1,9 +1,6 @@
 package jshelper_test
 
 import (
-	"errors"
-	"fmt"
-	"os/exec"
 	"reflect"
 	"testing"
 
@@ -24,14 +21,50 @@ func TestRunPreActionFunction(t *testing.T) {
 			Event:     jshelper.PreActionEvent{},
 			Function:  `console.log("Hello world!")`,
 			ExpectErr: true,
-			ExpectVal: jshelper.PreActionCallback{},
 		},
 		{
-			Name:      "Infinite Loop",
-			Event:     jshelper.PreActionEvent{},
-			Function:  `while(true){}`,
+			Name:  "Infinite Loop",
+			Event: jshelper.PreActionEvent{},
+			Function: `exports.main = () => {
+				while(true){}
+			}`,
 			ExpectErr: true,
-			ExpectVal: jshelper.PreActionCallback{},
+		},
+		{
+			Name:  "Returns string",
+			Event: jshelper.PreActionEvent{},
+			Function: `exports.main = () => {
+				return "Hello World!"
+			}`,
+			ExpectErr: true,
+		},
+		{
+			Name:  "Returns null",
+			Event: jshelper.PreActionEvent{},
+			Function: `exports.main = () => {
+				return null
+			}`,
+			ExpectErr: true,
+		},
+		{
+			Name:  "Returns function",
+			Event: jshelper.PreActionEvent{},
+			Function: `exports.main = () => {
+				function result() {
+					return true
+				}
+				return result
+			}`,
+			ExpectErr: true,
+		},
+		{
+			Name:  "Returns empty callback without erroring",
+			Event: jshelper.PreActionEvent{},
+			Function: `exports.main = () => {
+				return {httpMethod: "POST"}
+			}`,
+			ExpectErr: false,
+			ExpectVal: jshelper.PreActionCallback{HttpMethod: jshelper.Post},
 		},
 	}
 
@@ -41,10 +74,6 @@ func TestRunPreActionFunction(t *testing.T) {
 			if err != nil != testCase.ExpectErr {
 				if err == nil {
 					t.Fatal("Expected Error but got nil")
-				}
-				var exitErr *exec.ExitError
-				if errors.As(err, &exitErr) {
-					fmt.Println(string(exitErr.Stderr))
 				}
 				t.Fatal(err.Error())
 			}

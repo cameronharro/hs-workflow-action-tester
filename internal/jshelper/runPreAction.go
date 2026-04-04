@@ -7,6 +7,23 @@ import (
 )
 
 type PreActionEvent struct {
+	WebhookURL string `json:"webhookUrl"`
+	CallbackID string `json:"callbackId"`
+	Origin     struct {
+		PortalID                int `json:"portalId"`
+		ActionDefinitionID      int `json:"actionDefinitionId"`
+		ActionDefinitionVersion int `json:"actionDefinitionVersion"`
+	} `json:"origin"`
+	Context struct {
+		Source     string `json:"source"`
+		WorkflowID int    `json:"workflowId"`
+	} `json:"context"`
+	Object struct {
+		ObjectID   int            `json:"objectId"`
+		Properties map[string]any `json:"properties"`
+		ObjectType string         `json:"objectType"`
+	} `json:"object"`
+	InputFields map[string]any `json:"inputFields"`
 }
 
 func (payload PreActionEvent) getEventType() FunctionType {

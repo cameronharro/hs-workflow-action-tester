@@ -54,7 +54,11 @@ type RequestParams struct {
 	Body    map[string]any    `json:"body"`
 }
 
-func spawn[T Event, V CallbackData](event T, function string, validator func(d []byte) (V, error)) (callbackData V, err error) {
+func spawn[T Event, V CallbackData](
+	event T,
+	function string,
+	validator func(d []byte) (V, error),
+) (callbackData V, err error) {
 	errorOut := func(msg string) (V, error) {
 		return *new(V), errors.New("jshelper Error: " + msg)
 	}
@@ -65,7 +69,20 @@ func spawn[T Event, V CallbackData](event T, function string, validator func(d [
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	c := exec.CommandContext(ctx, "deno", "run", "--deny-read", "--deny-write", "--deny-net", "--deny-env", "--deny-run", "--deny-ffi", "--deny-sys", "--deny-import", "./jsHelper.cts")
+	c := exec.CommandContext(
+		ctx,
+		"deno",
+		"run",
+		"--deny-read",
+		"--deny-write",
+		"--deny-net",
+		"--deny-env",
+		"--deny-run",
+		"--deny-ffi",
+		"--deny-sys",
+		"--deny-import",
+		"./jsHelper.cts",
+	)
 	envelope := Envelope{
 		Event:    event,
 		Function: function,

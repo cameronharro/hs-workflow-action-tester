@@ -42,9 +42,7 @@ func testCaseMissingRequiredInput(
 	testCase testcase.TestCase,
 	actionInput actiondefinition.InputField,
 ) bool {
-	testCaseHasInput := !slices.ContainsFunc(testCase.InputFields, func(testInput testcase.InputField) bool {
-		return testInput.Name == actionInput.TypeDefinition.GetName() && testInput.Value != ""
-	})
+	_, testCaseHasInput := testCase.InputFields[actionInput.TypeDefinition.GetName()]
 	return testCaseHasInput || !actionInput.IsRequired
 }
 

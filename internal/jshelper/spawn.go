@@ -3,9 +3,11 @@ package jshelper
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -54,6 +56,9 @@ type RequestParams struct {
 	Body    map[string]any    `json:"body"`
 }
 
+//go:embed jsHelper.cts
+var jsHelper []byte
+
 func spawn[T Event, V CallbackData](
 	event T,
 	function string,
@@ -69,11 +74,26 @@ func spawn[T Event, V CallbackData](
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
+	tmp, err := os.CreateTemp("", "embedded-jsHelper-*.cts")
+	if err != nil {
+		errorOut(err.Error())
+	}
+	defer os.Remove(tmp.Name())
+
+	if _, err := tmp.Write(jsHelper); err != nil {
+		_ = tmp.Close()
+		errorOut(err.Error())
+	}
+
+	if err := tmp.Close(); err != nil {
+		errorOut(err.Error())
+	}
+
 	c := exec.CommandContext(
 		ctx,
 		"deno",
 		"run",
-		"--deny-read",
+		"--allow-read",
 		"--deny-write",
 		"--deny-net",
 		"--deny-env",
@@ -81,7 +101,7 @@ func spawn[T Event, V CallbackData](
 		"--deny-ffi",
 		"--deny-sys",
 		"--deny-import",
-		"./jsHelper.cts",
+		tmp.Name(),
 	)
 	envelope := Envelope{
 		Event:    event,

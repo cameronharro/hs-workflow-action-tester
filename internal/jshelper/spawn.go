@@ -96,13 +96,13 @@ func spawn[T Event, V CallbackData](
 	out, err := c.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return errorOut("JS execution deadline exceeded")
+			return errorOut("deadline exceeded")
 		}
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) || len(exitErr.Stderr) > 0 {
-			return errorOut(fmt.Sprintf("JS execution:\n%s", string(exitErr.Stderr)))
+			return errorOut(string(exitErr.Stderr))
 		}
-		return errorOut("JS execution:\n" + err.Error())
+		return errorOut(err.Error())
 	}
 
 	callbackData, err = validator(out)

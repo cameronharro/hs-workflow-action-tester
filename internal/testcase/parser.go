@@ -1,4 +1,4 @@
-package testcases
+package testcase
 
 import (
 	"encoding/csv"

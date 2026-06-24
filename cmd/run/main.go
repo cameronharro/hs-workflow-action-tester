@@ -5,11 +5,11 @@ import (
 	"log"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/hsserver"
-	"github.com/cameronharro/hs-workflow-tester/internal/testcases"
+	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
 )
 
 func main() {
-	testCases, err := testcases.Parse("./testCases.csv")
+	testCases, err := testcase.Parse("./testCases.csv")
 	if err != nil {
 		log.Fatal(err.Error())
 	}

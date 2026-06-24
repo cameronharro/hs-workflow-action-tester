@@ -6,11 +6,11 @@ import (
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
 	"github.com/cameronharro/hs-workflow-tester/internal/hsserver"
-	"github.com/cameronharro/hs-workflow-tester/internal/testcases"
+	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
 )
 
 func getDefForCase(
-	testCase testcases.TestCase,
+	testCase testcase.TestCase,
 	actionDefs []actiondefinition.ActionDefinition,
 ) (actiondefinition.ActionDefinition, error) {
 	defIndex := slices.IndexFunc(actionDefs, func(def actiondefinition.ActionDefinition) bool {
@@ -24,7 +24,7 @@ func getDefForCase(
 }
 
 func validateCaseAgainstDef(
-	testCase testcases.TestCase,
+	testCase testcase.TestCase,
 	actionDef actiondefinition.ActionDefinition,
 ) error {
 	for _, actionInput := range actionDef.Config.InputFields {
@@ -36,10 +36,10 @@ func validateCaseAgainstDef(
 }
 
 func testCaseMissingRequiredInput(
-	testCase testcases.TestCase,
+	testCase testcase.TestCase,
 	actionInput actiondefinition.InputField,
 ) bool {
-	testCaseHasInput := !slices.ContainsFunc(testCase.InputFields, func(testInput testcases.InputField) bool {
+	testCaseHasInput := !slices.ContainsFunc(testCase.InputFields, func(testInput testcase.InputField) bool {
 		return testInput.Name == actionInput.TypeDefinition.GetName() && testInput.Value != ""
 	})
 	return testCaseHasInput || !actionInput.IsRequired
@@ -47,7 +47,7 @@ func testCaseMissingRequiredInput(
 
 func runTestCase(
 	server *hsserver.HSServer,
-	testCase testcases.TestCase,
+	testCase testcase.TestCase,
 	actionDefs []actiondefinition.ActionDefinition,
 ) error {
 	actionDef, err := getDefForCase(testCase, actionDefs)

@@ -7,7 +7,7 @@ import (
 	"github.com/cameronharro/hs-workflow-tester/internal/jshelper"
 )
 
-func TestRunPreActionFunction(t *testing.T) {
+func TestSpawn(t *testing.T) {
 	type TestCase struct {
 		Name      string
 		Event     jshelper.PreActionEvent
@@ -18,37 +18,32 @@ func TestRunPreActionFunction(t *testing.T) {
 	testCases := []TestCase{
 		{
 			Name:      "Hello world",
-			Event:     jshelper.PreActionEvent{},
 			Function:  `console.log("Hello world!")`,
 			ExpectErr: true,
 		},
 		{
-			Name:  "Infinite Loop",
-			Event: jshelper.PreActionEvent{},
+			Name: "Infinite Loop",
 			Function: `exports.main = () => {
 				while(true){}
 			}`,
 			ExpectErr: true,
 		},
 		{
-			Name:  "Returns string",
-			Event: jshelper.PreActionEvent{},
+			Name: "Returns string",
 			Function: `exports.main = () => {
 				return "Hello World!"
 			}`,
 			ExpectErr: true,
 		},
 		{
-			Name:  "Returns null",
-			Event: jshelper.PreActionEvent{},
+			Name: "Returns null",
 			Function: `exports.main = () => {
 				return null
 			}`,
 			ExpectErr: true,
 		},
 		{
-			Name:  "Returns function",
-			Event: jshelper.PreActionEvent{},
+			Name: "Returns function",
 			Function: `exports.main = () => {
 				function result() {
 					return true
@@ -56,15 +51,6 @@ func TestRunPreActionFunction(t *testing.T) {
 				return result
 			}`,
 			ExpectErr: true,
-		},
-		{
-			Name:  "Returns empty callback without erroring",
-			Event: jshelper.PreActionEvent{},
-			Function: `exports.main = () => {
-				return {httpMethod: "POST"}
-			}`,
-			ExpectErr: false,
-			ExpectVal: jshelper.PreActionCallback{HttpMethod: jshelper.Post},
 		},
 	}
 

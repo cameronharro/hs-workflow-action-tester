@@ -7,8 +7,10 @@ import (
 
 func (c *ActionConfig) UnmarshalJSON(data []byte) error {
 	var raw struct {
-		InputFields []InputField      `json:"inputFields"`
-		Functions   []json.RawMessage `json:"functions"`
+		ActionURL      string            `json:"actionURL"`
+		ExecutionRules []ExecutionRule   `json:"executionRules"`
+		InputFields    []InputField      `json:"inputFields"`
+		Functions      []json.RawMessage `json:"functions"`
 	}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -48,8 +50,10 @@ func (c *ActionConfig) UnmarshalJSON(data []byte) error {
 }
 
 type ActionConfig struct {
-	InputFields []InputField `json:"inputFields"`
-	Functions   []Function   `json:"functions"`
+	ActionURL      string          `json:"actionURL"`
+	ExecutionRules []ExecutionRule `json:"executionRules"`
+	InputFields    []InputField    `json:"inputFields"`
+	Functions      []Function      `json:"functions"`
 }
 type ActionDefinition struct {
 	Uid    string       `json:"uid"`

@@ -26,10 +26,10 @@ func TestRunPreActionFunction(t *testing.T) {
 		{
 			Name: "Returns valid callback",
 			Function: `exports.main = () => {
-				return {httpMethod: "POST"}
+				return {httpMethod: "POST", body: {foo: "bar"}}
 			}`,
 			ExpectErr: false,
-			ExpectVal: jshelper.PreActionCallback{HttpMethod: jshelper.Post},
+			ExpectVal: jshelper.PreActionCallback{HttpMethod: jshelper.Post, Body: map[string]any{"foo": "bar"}},
 		},
 	}
 

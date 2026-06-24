@@ -32,7 +32,7 @@ func (payload PreActionEvent) getEventType() FunctionType {
 
 type PreActionCallback struct {
 	WebhookURL  string            `json:"webhookUrl"`
-	Body        string            `json:"body"`
+	Body        map[string]any    `json:"body"`
 	HttpHeaders map[string]string `json:"httpHeaders"`
 	ContentType string            `json:"contentType"`
 	Accept      string            `json:"accept"`

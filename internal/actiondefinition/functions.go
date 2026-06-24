@@ -1,5 +1,7 @@
 package actiondefinition
 
+import "slices"
+
 type FunctionType string
 
 const (
@@ -12,6 +14,28 @@ const (
 type Function interface {
 	Type() FunctionType
 	SourceCode() string
+}
+
+func (d ActionDefinition) getActionFunction(t FunctionType) Function {
+	if !slices.Contains([]FunctionType{PreActionExecution, PostActionExecution}, t) {
+		return nil
+	}
+
+	index := slices.IndexFunc(d.Config.Functions, func(ele Function) bool {
+		return ele.Type() == PreActionExecution
+	})
+	if index == -1 {
+		return nil
+	}
+	return d.Config.Functions[index]
+}
+
+func (d ActionDefinition) GetPreActionFunction() Function {
+	return d.getActionFunction(PreActionExecution)
+}
+
+func (d ActionDefinition) GetPostActionFunction() Function {
+	return d.getActionFunction(PostActionExecution)
 }
 
 type ActionFunction struct {

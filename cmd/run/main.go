@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	server := hsserver.NewHSServer("1234", "http://localhost:8080")
+	server := hsserver.NewHSServer("1234")
 
 	for _, testCase := range testCases {
 		err = runTestCase(server, testCase, actionDefinitions)

@@ -2,6 +2,7 @@ package testcase
 
 import (
 	"bytes"
+	"maps"
 	"slices"
 	"testing"
 )
@@ -16,36 +17,30 @@ func TestParse(t *testing.T) {
 	cases := []Case{
 		{
 			label:     "Should pass",
-			csvString: "label,value,expectedExecutionLabel,actionUID\nBrian Halligan,1234,Success,test_action\nMaria Johnson,9876,Failure,new_action",
+			csvString: "label,value,expectedExecutionLabel,objectId,actionUID,portalId\nBrian Halligan,1234,Success,123,test_action,111\nMaria Johnson,9876,Failure,987,new_action,222",
 			wantErr:   false,
 			result: []TestCase{
 				{
-					"test_action",
-					[]InputField{
-						{
-							Name:  "label",
-							Value: "Brian Halligan",
-						},
-						{
-							Name:  "value",
-							Value: "1234",
-						},
+					ActionUID: "test_action",
+					InputFields: map[string]any{
+						"label": "Brian Halligan",
+						"value": "1234",
 					},
-					"Success",
+					ObjectID:               123,
+					ObjectType:             "CONTACT",
+					PortalID:               111,
+					ExpectedExecutionLabel: "Success",
 				},
 				{
-					"new_action",
-					[]InputField{
-						{
-							Name:  "label",
-							Value: "Maria Johnson",
-						},
-						{
-							Name:  "value",
-							Value: "9876",
-						},
+					ActionUID: "new_action",
+					InputFields: map[string]any{
+						"label": "Maria Johnson",
+						"value": "9876",
 					},
-					"Failure",
+					ObjectID:               987,
+					ObjectType:             "CONTACT",
+					PortalID:               222,
+					ExpectedExecutionLabel: "Failure",
 				},
 			},
 		},
@@ -64,6 +59,16 @@ func TestParse(t *testing.T) {
 			csvString: "label,value,expectedExecutionLabel\nBrian Halligan,1234,Success\nMaria Johnson,9876,Failure",
 			wantErr:   true,
 		},
+		{
+			label:     "Error - invalid objectId",
+			csvString: "label,value,expectedExecutionLabel,objectId\nBrian Halligan,1234,Success,asd\nMaria Johnson,9876,Failure,123",
+			wantErr:   true,
+		},
+		{
+			label:     "Error - invalid portalId",
+			csvString: "label,value,expectedExecutionLabel,portalId\nBrian Halligan,1234,Success,asd\nMaria Johnson,9876,Failure,123",
+			wantErr:   true,
+		},
 	}
 
 	for _, thisCase := range cases {
@@ -74,7 +79,7 @@ func TestParse(t *testing.T) {
 				return
 			}
 			matches := slices.EqualFunc(result, thisCase.result, func(a, b TestCase) bool {
-				return a.ExpectedExecutionLabel == b.ExpectedExecutionLabel && slices.Equal(a.InputFields, b.InputFields)
+				return a.ExpectedExecutionLabel == b.ExpectedExecutionLabel && maps.Equal(a.InputFields, b.InputFields)
 			})
 			if !matches {
 				t.Errorf("Expected %v, got %v", thisCase.result, result)

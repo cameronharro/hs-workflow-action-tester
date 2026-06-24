@@ -31,6 +31,9 @@ func validateCaseAgainstDef(
 		if testCaseMissingRequiredInput(testCase, actionInput) {
 			return fmt.Errorf("Invalid testCase %v: Missing required field %v\n", testCase, actionInput)
 		}
+		if !slices.Contains(actionDef.Config.ObjectTypes, testCase.ObjectType) {
+			return fmt.Errorf("Invalid testCase %v: objectType %s not in config permitted objects: %v", testCase, testCase.ObjectType, actionDef.Config.ObjectTypes)
+		}
 	}
 	return nil
 }
@@ -59,6 +62,10 @@ func runTestCase(
 		return err
 	}
 
-	server.SendRequest(actionDef, testCase)
+	_, _, err = server.CreateRequest(actionDef, testCase)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -3,17 +3,18 @@ package testcase
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"os"
+	"strconv"
 )
 
-type InputField struct {
-	Name  string
-	Value string
-}
 type TestCase struct {
 	ActionUID              string
-	InputFields            []InputField
+	InputFields            map[string]any
+	ObjectID               int
+	ObjectType             string
+	PortalID               int
 	ExpectedExecutionLabel string
 }
 
@@ -44,19 +45,31 @@ func parse(data io.Reader) ([]TestCase, error) {
 
 	result := make([]TestCase, len(records))
 	for i, record := range records {
-		c := TestCase{}
+		c := TestCase{
+			InputFields: map[string]any{},
+		}
 		for j, col := range record {
 			switch headers[j] {
 			case "actionUID":
 				c.ActionUID = col
 			case "expectedExecutionLabel":
 				c.ExpectedExecutionLabel = col
-			default:
-				field := InputField{
-					Name:  headers[j],
-					Value: col,
+			case "objectId":
+				n, err := strconv.Atoi(col)
+				if err != nil {
+					return nil, fmt.Errorf("Invalid objectId: %s", col)
 				}
-				c.InputFields = append(c.InputFields, field)
+
+				c.ObjectID = n
+			case "portalId":
+				n, err := strconv.Atoi(col)
+				if err != nil {
+					return nil, fmt.Errorf("Invalid portalId: %s", col)
+				}
+
+				c.PortalID = n
+			default:
+				c.InputFields[headers[j]] = col
 			}
 		}
 		if c.ActionUID == "" {

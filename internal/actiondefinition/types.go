@@ -52,8 +52,9 @@ func (c *ActionConfig) UnmarshalJSON(data []byte) error {
 type ActionConfig struct {
 	ActionURL      string          `json:"actionURL"`
 	ExecutionRules []ExecutionRule `json:"executionRules"`
-	InputFields    []InputField    `json:"inputFields"`
 	Functions      []Function      `json:"functions"`
+	InputFields    []InputField    `json:"inputFields"`
+	ObjectTypes    []string        `json:"objectTypes"`
 }
 type ActionDefinition struct {
 	Uid    string       `json:"uid"`

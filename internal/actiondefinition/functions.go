@@ -11,6 +11,7 @@ const (
 
 type Function interface {
 	Type() FunctionType
+	SourceCode() string
 }
 
 type ActionFunction struct {
@@ -22,6 +23,10 @@ func (f ActionFunction) Type() FunctionType {
 	return f.FunctionType
 }
 
+func (f ActionFunction) SourceCode() string {
+	return f.FunctionSource
+}
+
 type OptionFunction struct {
 	FunctionType   FunctionType `json:"functionType"`
 	Id             string       `json:"id"`
@@ -30,4 +35,8 @@ type OptionFunction struct {
 
 func (f OptionFunction) Type() FunctionType {
 	return f.FunctionType
+}
+
+func (f OptionFunction) SourceCode() string {
+	return f.FunctionSource
 }

@@ -16,11 +16,14 @@ func TestParse(t *testing.T) {
 	}
 	cases := []Case{
 		{
-			label:     "Should pass",
-			csvString: "label,value,expectedExecutionLabel,objectId,actionUID,portalId\nBrian Halligan,1234,Success,123,test_action,111\nMaria Johnson,9876,Failure,987,new_action,222",
-			wantErr:   false,
+			label: "Should pass",
+			csvString: `testLabel,label,value,expectedExecutionLabel,objectId,actionUID,portalId
+			1,Brian Halligan,1234,Success,123,test_action,111
+			2,Maria Johnson,9876,Failure,987,new_action,222`,
+			wantErr: false,
 			result: []TestCase{
 				{
+					TestLabel: "1",
 					ActionUID: "test_action",
 					InputFields: map[string]any{
 						"label": "Brian Halligan",
@@ -32,6 +35,7 @@ func TestParse(t *testing.T) {
 					ExpectedExecutionLabel: "Success",
 				},
 				{
+					TestLabel: "2",
 					ActionUID: "new_action",
 					InputFields: map[string]any{
 						"label": "Maria Johnson",
@@ -45,29 +49,37 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			label:     "Error - mismatched row length",
-			csvString: "label,value,expectedExecutionLabel\nBrian Halligan,1234,Success,Should Error\nMaria Johnson,9876,Failure",
-			wantErr:   true,
+			label: "Error - mismatched row length",
+			csvString: `testLabel,label,value,expectedExecutionLabel
+			1,Brian Halligan,1234,Success,Should Error
+			2,Maria Johnson,9876,Failure`,
+			wantErr: true,
 		},
 		{
 			label:     "Error - no records",
-			csvString: "label,value,expectedExecutionLabel",
+			csvString: "testLabel,actionUID,label,value,expectedExecutionLabel",
 			wantErr:   true,
 		},
 		{
-			label:     "Error - no actionUID",
-			csvString: "label,value,expectedExecutionLabel\nBrian Halligan,1234,Success\nMaria Johnson,9876,Failure",
-			wantErr:   true,
+			label: "Error - no actionUID",
+			csvString: `testLabel,label,value,expectedExecutionLabel
+			1,Brian Halligan,1234,Success
+			2,Maria Johnson,9876,Failure`,
+			wantErr: true,
 		},
 		{
-			label:     "Error - invalid objectId",
-			csvString: "label,value,expectedExecutionLabel,objectId\nBrian Halligan,1234,Success,asd\nMaria Johnson,9876,Failure,123",
-			wantErr:   true,
+			label: "Error - invalid objectId",
+			csvString: `testLabel,label,value,expectedExecutionLabel,objectId
+			1,Brian Halligan,1234,Success,asd
+			2,Maria Johnson,9876,Failure,123`,
+			wantErr: true,
 		},
 		{
-			label:     "Error - invalid portalId",
-			csvString: "label,value,expectedExecutionLabel,portalId\nBrian Halligan,1234,Success,asd\nMaria Johnson,9876,Failure,123",
-			wantErr:   true,
+			label: "Error - invalid portalId",
+			csvString: `testLabel,label,value,expectedExecutionLabel,portalId
+			1,Brian Halligan,1234,Success,asd
+			2,Maria Johnson,9876,Failure,123`,
+			wantErr: true,
 		},
 	}
 

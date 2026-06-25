@@ -1,4 +1,4 @@
-package hsserver_test
+package hsserver
 
 import (
 	"bytes"
@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
-	"github.com/cameronharro/hs-workflow-tester/internal/hsserver"
 	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
 )
 
@@ -87,10 +86,10 @@ func TestCreateRequest(t *testing.T) {
 		},
 	}
 
-	server := hsserver.NewHSServer("asdfaegwagfasgrasef")
+	server := NewHSServer("asdfaegwagfasgrasef", 8080)
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			req, _, err := server.CreateRequest(testCase.actionDef, testCase.testCase)
+			req, _, err := server.createRequest(testCase.actionDef, testCase.testCase)
 			if err != nil != testCase.expectErr {
 				t.Fatalf("Errors: expected? %t, got %v", testCase.expectErr, err)
 			}

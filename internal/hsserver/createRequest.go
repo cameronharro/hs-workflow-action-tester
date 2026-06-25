@@ -14,7 +14,7 @@ import (
 	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
 )
 
-func (s *HSServer) CreateRequest(
+func (s *HSServer) createRequest(
 	actionDef actiondefinition.ActionDefinition,
 	testCase testcase.TestCase,
 ) (req *http.Request, callbackId string, err error) {

@@ -17,6 +17,8 @@ func (c *ActionConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	c.InputFields = raw.InputFields
+	c.ActionURL = raw.ActionURL
+	c.ExecutionRules = raw.ExecutionRules
 
 	for _, rawFunc := range raw.Functions {
 		var disc struct {

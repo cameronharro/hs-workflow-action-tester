@@ -1,6 +1,7 @@
 package actiondefinition
 
 import (
+	"reflect"
 	"slices"
 	"testing"
 )
@@ -143,15 +144,36 @@ func TestParser(t *testing.T) {
 		},
 	}
 
+	expectedExecutionRules := []ExecutionRule{
+		{
+			LabelName: "success",
+			Conditions: map[string]any{
+				"status": []any{"success"},
+			},
+		},
+		{
+			LabelName: "failure",
+			Conditions: map[string]any{
+				"status": []any{"failure"},
+			},
+		},
+	}
+
 	definition, err := Parse([]byte(testConfig))
 	if err != nil {
 		t.Error(err.Error())
 		return
 	}
 	if !slices.Equal(definition.Config.InputFields, expectedInputFields) {
-		t.Errorf("Expected %v, got %v", expectedInputFields, definition.Config.InputFields)
+		t.Errorf("[ActionDef]: Inputfields: Expected %v, got %v", expectedInputFields, definition.Config.InputFields)
 	}
 	if !slices.Equal(definition.Config.Functions, expectedFunctions) {
-		t.Errorf("Expected %v, got %v", expectedInputFields, definition.Config.InputFields)
+		t.Errorf("[ActionDef]: Functions: Expected %v, got %v", expectedFunctions, definition.Config.Functions)
+	}
+	if !slices.EqualFunc(definition.Config.ExecutionRules, expectedExecutionRules, func(r1, r2 ExecutionRule) bool {
+		eqConditions := reflect.DeepEqual(r1.Conditions, r2.Conditions)
+		return r1.LabelName == r2.LabelName && eqConditions
+	}) {
+		t.Errorf("[ActionDef]: ExecutionRules: Expected %v, got %v", expectedExecutionRules, definition.Config.ExecutionRules)
 	}
 }

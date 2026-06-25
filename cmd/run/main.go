@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/hsserver"
 	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
@@ -19,12 +20,21 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	server := hsserver.NewHSServer("1234")
+	server := hsserver.NewHSServer("1234", 8080)
 
 	for _, testCase := range testCases {
-		err = runTestCase(server, testCase, actionDefinitions)
-		if err != nil {
-			fmt.Print(err)
-		}
+		go func() {
+			err = server.RunTestCase(testCase, actionDefinitions)
+			if err != nil {
+				fmt.Print(err.Error())
+			}
+		}()
 	}
+
+	result := <-server.ResultChan
+	if result != nil {
+		fmt.Println(result)
+		os.Exit(1)
+	}
+	os.Exit(0)
 }

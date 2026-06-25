@@ -1,11 +1,10 @@
-package main
+package hsserver
 
 import (
 	"fmt"
 	"slices"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
-	"github.com/cameronharro/hs-workflow-tester/internal/hsserver"
 	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
 )
 
@@ -44,26 +43,4 @@ func testCaseMissingRequiredInput(
 ) bool {
 	_, testCaseHasInput := testCase.InputFields[actionInput.TypeDefinition.GetName()]
 	return testCaseHasInput || !actionInput.IsRequired
-}
-
-func runTestCase(
-	server *hsserver.HSServer,
-	testCase testcase.TestCase,
-	actionDefs []actiondefinition.ActionDefinition,
-) error {
-	actionDef, err := getDefForCase(testCase, actionDefs)
-	if err != nil {
-		return err
-	}
-
-	if err = validateCaseAgainstDef(testCase, actionDef); err != nil {
-		return err
-	}
-
-	_, _, err = server.CreateRequest(actionDef, testCase)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

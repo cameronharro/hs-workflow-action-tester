@@ -44,7 +44,7 @@ func TestRunPostActionFunction(t *testing.T) {
 				return {outputFields: {}}
 			}`,
 			ExpectErr: false,
-			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]string{}},
+			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]any{}},
 		},
 		{
 			Name: "Returns valid outputFields",
@@ -52,7 +52,7 @@ func TestRunPostActionFunction(t *testing.T) {
 				return {outputFields: {status: "success"}}
 			}`,
 			ExpectErr: false,
-			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]string{"status": "success"}},
+			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]any{"status": "success"}},
 		},
 		{
 			Name:  "Transforms receieved payload",
@@ -61,7 +61,7 @@ func TestRunPostActionFunction(t *testing.T) {
 				return {outputFields: {status: event.status < 300 ? "success" : "failure"}}
 			}`,
 			ExpectErr: false,
-			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]string{"status": "failure"}},
+			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]any{"status": "failure"}},
 		},
 	}
 

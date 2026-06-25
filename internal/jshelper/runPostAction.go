@@ -11,7 +11,7 @@ func (payload PostActionEvent) getEventType() FunctionType {
 }
 
 type PostActionCallback struct {
-	OutputFields map[string]string `json:"outputFields"`
+	OutputFields map[string]any `json:"outputFields"`
 }
 
 func (callback PostActionCallback) getCallbackType() FunctionType {

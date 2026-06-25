@@ -11,7 +11,7 @@ import (
 )
 
 func getActionDefs(root string) ([]actiondefinition.ActionDefinition, error) {
-	filePaths, err := getActionDefFiles(".")
+	filePaths, err := getActionDefFiles(root)
 	if err != nil {
 		return nil, err
 	}

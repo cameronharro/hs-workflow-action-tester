@@ -26,14 +26,17 @@ type testResponse struct {
 type resolutionQueue struct {
 	PayloadChan  chan<- testPayload
 	ResponseChan chan<- testResponse
+	ResultChan   <-chan error
 }
 
-func startResolutionQueue(testCaseCount *atomic.Int64, resultChan chan<- error, timeout time.Duration) resolutionQueue {
+func startResolutionQueue(testCaseCount *atomic.Int64, timeout time.Duration) resolutionQueue {
 	payloadChan := make(chan testPayload)
 	responseChan := make(chan testResponse)
+	resultChan := make(chan error)
 	resolutionQueue := resolutionQueue{
 		PayloadChan:  payloadChan,
 		ResponseChan: responseChan,
+		ResultChan:   resultChan,
 	}
 
 	payloads := map[string]testPayload{}

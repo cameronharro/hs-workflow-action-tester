@@ -289,16 +289,15 @@ func TestResolutionQueue(t *testing.T) {
 					},
 				},
 			},
-			expectErr: false,
+			expectErr: true,
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			resultChan := make(chan error)
 			countOfPayloads := &atomic.Int64{}
 			countOfPayloads.Add(int64(testCase.startingReqCount))
-			queue := startResolutionQueue(countOfPayloads, resultChan, testCase.timeout)
+			queue := startResolutionQueue(countOfPayloads, testCase.timeout)
 			for _, cycle := range testCase.reqResCycles {
 				go func() {
 					countOfPayloads.Add(1)
@@ -308,7 +307,7 @@ func TestResolutionQueue(t *testing.T) {
 					}
 				}()
 			}
-			err := <-resultChan
+			err := <-queue.ResultChan
 			if err != nil != testCase.expectErr {
 				t.Errorf("[Error]: expected? %t, got:\n%v\n", testCase.expectErr, err)
 			}

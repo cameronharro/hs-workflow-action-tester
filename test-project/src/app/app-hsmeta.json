@@ -6,10 +6,7 @@
     "name": "test-project-Application",
     "distribution": "private",
     "auth": {
-      "type": "oauth",
-      "redirectUrls": [
-        "http://localhost:3000"
-      ],
+      "type": "static",
       "requiredScopes": [
         "oauth",
         "crm.objects.contacts.read",
@@ -19,9 +16,7 @@
       "conditionallyRequiredScopes": []
     },
     "permittedUrls": {
-      "fetch": [
-        "https://api.hubapi.com"
-      ],
+      "fetch": ["https://api.hubapi.com"],
       "iframe": [],
       "img": []
     },
@@ -33,3 +28,4 @@
     }
   }
 }
+

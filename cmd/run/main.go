@@ -26,15 +26,16 @@ func main() {
 		go func() {
 			err = server.RunTestCase(testCase, actionDefinitions)
 			if err != nil {
-				fmt.Print(err.Error())
+				fmt.Println(err.Error())
 			}
 		}()
 	}
 
 	result := <-server.ResultChan
 	if result != nil {
-		fmt.Println(result)
+		fmt.Println(result.Error())
 		os.Exit(1)
 	}
+	fmt.Println("All test cases pass!")
 	os.Exit(0)
 }

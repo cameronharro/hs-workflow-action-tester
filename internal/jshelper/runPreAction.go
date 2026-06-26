@@ -10,18 +10,15 @@ type PreActionEvent struct {
 	WebhookURL string `json:"webhookUrl"`
 	CallbackID string `json:"callbackId"`
 	Origin     struct {
-		PortalID                int `json:"portalId"`
-		ActionDefinitionID      int `json:"actionDefinitionId"`
-		ActionDefinitionVersion int `json:"actionDefinitionVersion"`
+		PortalID int `json:"portalId"`
 	} `json:"origin"`
 	Context struct {
 		Source     string `json:"source"`
 		WorkflowID int    `json:"workflowId"`
 	} `json:"context"`
 	Object struct {
-		ObjectID   int            `json:"objectId"`
-		Properties map[string]any `json:"properties"`
-		ObjectType string         `json:"objectType"`
+		ObjectID   int    `json:"objectId"`
+		ObjectType string `json:"objectType"`
 	} `json:"object"`
 	InputFields map[string]any `json:"inputFields"`
 }

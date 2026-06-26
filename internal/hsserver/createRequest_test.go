@@ -2,6 +2,7 @@ package hsserver
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"net/url"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
 	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
@@ -89,7 +91,9 @@ func TestCreateRequest(t *testing.T) {
 	server := NewHSServer("asdfaegwagfasgrasef", 8080)
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			req, _, err := server.createRequest(testCase.actionDef, testCase.testCase)
+			ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second)
+			defer cancelFunc()
+			req, _, err := server.createRequest(ctx, testCase.actionDef, testCase.testCase)
 			if err != nil != testCase.expectErr {
 				t.Fatalf("Errors: expected? %t, got %v", testCase.expectErr, err)
 			}

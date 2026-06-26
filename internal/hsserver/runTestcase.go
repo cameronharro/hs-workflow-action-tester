@@ -1,10 +1,12 @@
 package hsserver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
 	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
@@ -33,7 +35,10 @@ func (s *HSServer) RunTestCase(
 		return &TestCaseError{testCase, err}
 	}
 
-	req, callbackId, err := s.createRequest(actionDef, testCase)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunc()
+
+	req, callbackId, err := s.createRequest(ctx, actionDef, testCase)
 	if err != nil {
 		return &TestCaseError{testCase, err}
 	}

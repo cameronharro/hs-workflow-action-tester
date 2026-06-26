@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
 	"github.com/cameronharro/hs-workflow-tester/internal/jshelper"
@@ -15,6 +14,7 @@ import (
 )
 
 func (s *HSServer) createRequest(
+	ctx context.Context,
 	actionDef actiondefinition.ActionDefinition,
 	testCase testcase.TestCase,
 ) (req *http.Request, callbackId string, err error) {
@@ -25,35 +25,28 @@ func (s *HSServer) createRequest(
 		ObjectID   int    `json:"objectId"`
 		ObjectType string `json:"objectType"`
 	}
-	type Body struct {
-		CallbackID string         `json:"callbackId"`
-		Fields     map[string]any `json:"fields"`
-		Object     Object         `json:"object"`
-		Origin     Origin         `json:"origin"`
-	}
 
 	callbackId = fmt.Sprintf("ap-%d-%d-0-1", rand.Int(), rand.Int())
-	body := Body{
-		CallbackID: callbackId,
-		Fields:     testCase.InputFields,
-		Object: Object{
-			ObjectID:   testCase.ObjectID,
-			ObjectType: testCase.ObjectType,
-		},
-		Origin: Origin{
-			PortalID: testCase.PortalID,
-		},
-	}
-	serializedBody, err := json.Marshal(body)
-	if err != nil {
-		return nil, "", err
-	}
 
+	url := actionDef.Config.ActionURL
+	if testCase.ActionURL != "" {
+		url = testCase.ActionURL
+	}
+	origin := Origin{
+		PortalID: testCase.PortalID,
+	}
+	object := Object{
+		ObjectID:   testCase.ObjectID,
+		ObjectType: testCase.ObjectType,
+	}
 	if preActionFunction := actionDef.GetPreActionFunction(); preActionFunction != nil {
 		jsCallback, err := jshelper.RunPreActionFunction(
 			jshelper.PreActionEvent{
+				WebhookURL:  url,
+				CallbackID:  callbackId,
 				InputFields: testCase.InputFields,
-				WebhookURL:  actionDef.Config.ActionURL,
+				Object:      object,
+				Origin:      origin,
 			},
 			preActionFunction.SourceCode(),
 		)
@@ -66,7 +59,6 @@ func (s *HSServer) createRequest(
 			return nil, "", err
 		}
 
-		ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
 		req, err = http.NewRequestWithContext(
 			ctx,
 			string(jsCallback.HttpMethod),
@@ -91,12 +83,28 @@ func (s *HSServer) createRequest(
 		)
 
 	} else {
-		ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
+		type Body struct {
+			CallbackID string         `json:"callbackId"`
+			Fields     map[string]any `json:"fields"`
+			Object     Object         `json:"object"`
+			Origin     Origin         `json:"origin"`
+		}
+		body := Body{
+			CallbackID: callbackId,
+			Fields:     testCase.InputFields,
+			Object:     object,
+			Origin:     origin,
+		}
+		serializedBody, err := json.Marshal(body)
+		if err != nil {
+			return nil, "", err
+		}
+
 		method := "POST"
 		req, err = http.NewRequestWithContext(
 			ctx,
 			method,
-			actionDef.Config.ActionURL,
+			url,
 			bytes.NewReader(serializedBody),
 		)
 		if err != nil {

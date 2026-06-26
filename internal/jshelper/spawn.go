@@ -68,7 +68,7 @@ func spawn[T Event, V CallbackData](
 		return *new(V), errors.New("jshelper Error: " + msg)
 	}
 
-	if !strings.Contains(function, "exports.main = (") {
+	if !strings.Contains(function, "exports.main = ") {
 		return errorOut(fmt.Sprintf("%s definition lacks exports.main assigment: %s\n", event.getEventType(), function))
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)

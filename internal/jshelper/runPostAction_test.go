@@ -18,38 +18,38 @@ func TestRunPostActionFunction(t *testing.T) {
 	testCases := []TestCase{
 		{
 			Name: "Returns invalid outputFields - string",
-			Function: `exports.main = () => {
-				return {outputFields: "string"}
+			Function: `exports.main = (_, callback) => {
+				return callback({outputFields: "string"})
 			}`,
 			ExpectErr: true,
 		},
 		{
 			Name: "Returns invalid outputFields - number",
-			Function: `exports.main = () => {
-				return {outputFields: 24}
+			Function: `exports.main = (_, callback) => {
+				return callback({outputFields: 24})
 			}`,
 			ExpectErr: true,
 		},
 		{
 			Name: "Returns no outputFields",
-			Function: `exports.main = () => {
-				return {}
+			Function: `exports.main = (_, callback) => {
+				return callback({})
 			}`,
 			ExpectErr: false,
 			ExpectVal: jshelper.PostActionCallback{},
 		},
 		{
 			Name: "Returns valid outputFields - empty object",
-			Function: `exports.main = () => {
-				return {outputFields: {}}
+			Function: `exports.main = (_, callback) => {
+				return callback({outputFields: {}})
 			}`,
 			ExpectErr: false,
 			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]any{}},
 		},
 		{
 			Name: "Returns valid outputFields",
-			Function: `exports.main = () => {
-				return {outputFields: {status: "success"}}
+			Function: `exports.main = (_, callback) => {
+				return callback({outputFields: {status: "success"}})
 			}`,
 			ExpectErr: false,
 			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]any{"status": "success"}},
@@ -57,8 +57,8 @@ func TestRunPostActionFunction(t *testing.T) {
 		{
 			Name:  "Transforms receieved payload",
 			Event: jshelper.PostActionEvent{"status": 401},
-			Function: `exports.main = (event) => {
-				return {outputFields: {status: event.status < 300 ? "success" : "failure"}}
+			Function: `exports.main = (event, callback) => {
+				return callback({outputFields: {status: event.status < 300 ? "success" : "failure"}})
 			}`,
 			ExpectErr: false,
 			ExpectVal: jshelper.PostActionCallback{OutputFields: map[string]any{"status": "failure"}},

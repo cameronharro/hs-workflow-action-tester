@@ -59,8 +59,8 @@ func TestCreateRequest(t *testing.T) {
 					Functions: []actiondefinition.Function{
 						actiondefinition.ActionFunction{
 							FunctionType: actiondefinition.PreActionExecution,
-							FunctionSource: `exports.main = (event) => {
-								return {webhookUrl: "https://google.com", body: event.inputFields, httpMethod: "PATCH"}
+							FunctionSource: `exports.main = (event, callback) => {
+								return callback({webhookUrl: "https://google.com", body: event.inputFields, httpMethod: "PATCH"})
 							}`,
 						},
 					},

@@ -1,4 +1,6 @@
-declare var module: { exports: { main?: (data: any) => any } };
+declare var module: {
+  exports: { main?: (data: any, callback: (arg: any) => void) => any };
+};
 const { exports } = module;
 
 type Envelope = {
@@ -43,8 +45,7 @@ async function main() {
     throw new Error("envelope.function did not set exports.main");
   }
   try {
-    const result = exports.main(envelope.event);
-    callback(result);
+    const result = exports.main(envelope.event, callback);
   } catch (e) {
     if (e instanceof Error) {
       throw new Error("envelope.function: " + e.message);

@@ -18,15 +18,15 @@ func TestRunPreActionFunction(t *testing.T) {
 	testCases := []TestCase{
 		{
 			Name: "Returns empty callback ",
-			Function: `exports.main = () => {
-				return {}
+			Function: `exports.main = (_, callback) => {
+				return callback({})
 			}`,
 			ExpectErr: true,
 		},
 		{
 			Name: "Returns valid callback",
-			Function: `exports.main = () => {
-				return {httpMethod: "POST", body: {foo: "bar"}}
+			Function: `exports.main = (_, callback) => {
+				return callback({httpMethod: "POST", body: {foo: "bar"}})
 			}`,
 			ExpectErr: false,
 			ExpectVal: jshelper.PreActionCallback{HttpMethod: jshelper.Post, Body: map[string]any{"foo": "bar"}},

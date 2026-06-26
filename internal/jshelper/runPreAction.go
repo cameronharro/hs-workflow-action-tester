@@ -53,7 +53,7 @@ func validatePreAction(data []byte) (PreActionCallback, error) {
 	hasValidMethod := isValidMethod(result.HttpMethod)
 
 	if !hasValidMethod {
-		return PreActionCallback{}, fmt.Errorf("Invalid PreActionCallback: %v", result)
+		return PreActionCallback{}, fmt.Errorf("[PreActionCallback]: Invalid HTTP Method %v", result.HttpMethod)
 	}
 
 	return result, nil

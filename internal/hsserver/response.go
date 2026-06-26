@@ -5,10 +5,6 @@ import (
 	"slices"
 )
 
-type response struct {
-	OutputFields map[string]any `json:"outputFields"`
-}
-
 type hsExecutionState string
 
 const (
@@ -21,10 +17,10 @@ const (
 func getExecutionState(state any) (hsExecutionState, error) {
 	str, ok := state.(string)
 	if !ok {
-		return "", fmt.Errorf("Invalid Execution State: %v", state)
+		return "", fmt.Errorf("[hs_execution_state]: Invalid state: %v", state)
 	}
 	if !slices.Contains([]hsExecutionState{Async, Block, Failure, Success}, hsExecutionState(str)) {
-		return "", fmt.Errorf("Invalid Execution State: %v", str)
+		return "", fmt.Errorf("[hs_execution_state]: Invalid state: %v", str)
 	}
 	return hsExecutionState(str), nil
 }

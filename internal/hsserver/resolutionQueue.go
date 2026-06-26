@@ -122,17 +122,15 @@ func checkResponseAgainstPayload(payload testPayload, response testResponse) err
 		outputFields, ok = rawOutputFields.(map[string]any)
 	}
 
-	if rawHSExState, ok := outputFields["hs_execution_state"]; ok {
-		hsExState, stateErr := getExecutionState(rawHSExState)
-		if stateErr != nil {
-			return &TestCaseError{
-				testCase: payload.TestCase,
-				error:    stateErr,
-			}
+	hsExState, stateErr := getExecutionState(outputFields["hs_execution_state"])
+	if stateErr != nil {
+		return &TestCaseError{
+			testCase: payload.TestCase,
+			error:    stateErr,
 		}
-		if slices.Contains([]hsExecutionState{Async, Block}, hsExState) {
-			return fmt.Errorf("Resolution will be asynchronous, ignore")
-		}
+	}
+	if slices.Contains([]hsExecutionState{Async, Block}, hsExState) {
+		return fmt.Errorf("Resolution will be asynchronous, ignore")
 	}
 
 	executionRuleLabel := payload.ActionDef.GetMatchingExecutionRule(outputFields)

@@ -44,7 +44,7 @@ func TestResolutionQueue(t *testing.T) {
 	actionDefWithPostFunction.Config.Functions = []actiondefinition.Function{
 		actiondefinition.ActionFunction{
 			FunctionType:   actiondefinition.PostActionExecution,
-			FunctionSource: `exports.main = function(event, callback) { return callback({outputFields:{status:"success"}})}`,
+			FunctionSource: `exports.main = function(event, callback) { return callback({outputFields:{hs_execution_state:"SUCCESS",status:"success"}})}`,
 		},
 	}
 	actionDefWithInvalidPostFunction := actionDef
@@ -74,7 +74,8 @@ func TestResolutionQueue(t *testing.T) {
 							CallbackId: "123",
 							ResponseBody: map[string]any{
 								"outputFields": map[string]any{
-									"status": "success",
+									"hs_execution_state": "SUCCESS",
+									"status":             "success",
 								},
 							},
 						},
@@ -94,7 +95,8 @@ func TestResolutionQueue(t *testing.T) {
 							CallbackId: "456",
 							ResponseBody: map[string]any{
 								"outputFields": map[string]any{
-									"status": "failure",
+									"hs_execution_state": "FAIL_CONTINUE",
+									"status":             "failure",
 								},
 							},
 						},
@@ -112,6 +114,11 @@ func TestResolutionQueue(t *testing.T) {
 					responses: []testResponse{
 						testResponse{
 							CallbackId: "789",
+							ResponseBody: map[string]any{
+								"outputFields": map[string]any{
+									"hs_execution_state": "SUCCESS",
+								},
+							},
 						},
 					},
 				},

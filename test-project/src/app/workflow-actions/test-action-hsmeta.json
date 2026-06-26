@@ -69,7 +69,7 @@
     "functions": [
       {
         "functionType": "PRE_ACTION_EXECUTION",
-        "functionSource": "exports.main = function(event, callback) { return callback(transformRequest(event)); }\nfunction transformRequest(request) { return { webhookUrl: request.webhookUrl, body: JSON.stringify(request.fields), contentType: 'application/x-www-form-urlencoded', accept: 'application/json', httpMethod: 'POST' }; }"
+        "functionSource": "exports.main = function(event, callback) { return callback({httpMethod: 'PATCH', webhookUrl: event.webhookUrl, body: {...event}}); }"
       },
       {
         "functionType": "PRE_FETCH_OPTIONS",

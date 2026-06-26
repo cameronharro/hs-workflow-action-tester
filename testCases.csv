@@ -1,3 +1,3 @@
-label,value,expectedExecutionLabel,actionUID
-Cameron Harro,1234,success,test_action
-Kevin Mead,9876,failure,test_action
+testLabel,label,value,expectedExecutionLabel,objectId,objectType,actionUID,actionURL,portalId
+1,Brian Halligan,1234,success,1234,CONTACT,test_action,http://localhost:3000,111
+2,Maria Johnson,9876,failure,9876,CONTACT,test_action,http://localhost:3000,222

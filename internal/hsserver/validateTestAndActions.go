@@ -27,17 +27,18 @@ func validateCaseAgainstDef(
 	actionDef actiondefinition.ActionDefinition,
 ) error {
 	for _, actionInput := range actionDef.Config.InputFields {
-		if testCaseMissingRequiredInput(testCase, actionInput) {
-			return fmt.Errorf("Invalid testCase %v: Missing required field %v\n", testCase, actionInput)
+		if !testCaseHasRequiredInput(testCase, actionInput) {
+			return fmt.Errorf("Invalid testCase %s: Missing required field %s\n", testCase.TestLabel, actionInput.TypeDefinition.GetName())
 		}
-		if !slices.Contains(actionDef.Config.ObjectTypes, testCase.ObjectType) {
-			return fmt.Errorf("Invalid testCase %v: objectType %s not in config permitted objects: %v", testCase, testCase.ObjectType, actionDef.Config.ObjectTypes)
+		allowsAllObjects := len(actionDef.Config.ObjectTypes) == 0
+		if !allowsAllObjects && !slices.Contains(actionDef.Config.ObjectTypes, testCase.ObjectType) {
+			return fmt.Errorf("Invalid testCase %s: objectType %s not in config permitted objects: %v\n", testCase.TestLabel, testCase.ObjectType, actionDef.Config.ObjectTypes)
 		}
 	}
 	return nil
 }
 
-func testCaseMissingRequiredInput(
+func testCaseHasRequiredInput(
 	testCase testcase.TestCase,
 	actionInput actiondefinition.InputField,
 ) bool {

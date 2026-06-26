@@ -17,14 +17,15 @@ func TestParse(t *testing.T) {
 	cases := []Case{
 		{
 			label: "Should pass",
-			csvString: `testLabel,label,value,expectedExecutionLabel,objectId,actionUID,portalId
-			1,Brian Halligan,1234,Success,123,test_action,111
-			2,Maria Johnson,9876,Failure,987,new_action,222`,
+			csvString: `testLabel,label,value,expectedExecutionLabel,objectId,objectType,actionUID,actionURL,portalId
+			1,Brian Halligan,1234,Success,123,CONTACT,test_action,http://localhost:3000,111
+			2,Maria Johnson,9876,Failure,987,CONTACT,new_action,https://api.hubapi.com/crm,222`,
 			wantErr: false,
 			result: []TestCase{
 				{
 					TestLabel: "1",
 					ActionUID: "test_action",
+					ActionURL: "http://localhost:3000",
 					InputFields: map[string]any{
 						"label": "Brian Halligan",
 						"value": "1234",
@@ -37,6 +38,7 @@ func TestParse(t *testing.T) {
 				{
 					TestLabel: "2",
 					ActionUID: "new_action",
+					ActionURL: "https://api.hubapi.com/crm",
 					InputFields: map[string]any{
 						"label": "Maria Johnson",
 						"value": "9876",

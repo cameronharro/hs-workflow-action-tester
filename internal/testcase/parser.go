@@ -12,6 +12,7 @@ import (
 type TestCase struct {
 	TestLabel              string
 	ActionUID              string
+	ActionURL              string
 	InputFields            map[string]any
 	ObjectID               int
 	ObjectType             string
@@ -53,6 +54,8 @@ func parse(data io.Reader) ([]TestCase, error) {
 			switch headers[j] {
 			case "actionUID":
 				c.ActionUID = col
+			case "actionURL":
+				c.ActionURL = col
 			case "expectedExecutionLabel":
 				c.ExpectedExecutionLabel = col
 			case "testLabel":
@@ -64,6 +67,8 @@ func parse(data io.Reader) ([]TestCase, error) {
 				}
 
 				c.ObjectID = n
+			case "objectType":
+				c.ObjectType = col
 			case "portalId":
 				n, err := strconv.Atoi(col)
 				if err != nil {
@@ -77,6 +82,9 @@ func parse(data io.Reader) ([]TestCase, error) {
 		}
 		if c.ActionUID == "" {
 			return nil, errors.New("No actionUID provided")
+		}
+		if c.ObjectType == "" {
+			return nil, errors.New("No objectType provided")
 		}
 		if c.TestLabel == "" {
 			return nil, errors.New("No testLabel provided")

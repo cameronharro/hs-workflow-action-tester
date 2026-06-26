@@ -22,7 +22,7 @@ func (d ActionDefinition) getActionFunction(t FunctionType) Function {
 	}
 
 	index := slices.IndexFunc(d.Config.Functions, func(ele Function) bool {
-		return ele.Type() == PreActionExecution
+		return ele.Type() == t
 	})
 	if index == -1 {
 		return nil

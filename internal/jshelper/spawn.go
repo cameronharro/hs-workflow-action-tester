@@ -76,17 +76,17 @@ func spawn[T Event, V CallbackData](
 
 	tmp, err := os.CreateTemp("", "embedded-jsHelper-*.cts")
 	if err != nil {
-		errorOut(err.Error())
+		return errorOut(err.Error())
 	}
 	defer os.Remove(tmp.Name())
 
 	if _, err := tmp.Write(jsHelper); err != nil {
 		_ = tmp.Close()
-		errorOut(err.Error())
+		return errorOut(err.Error())
 	}
 
 	if err := tmp.Close(); err != nil {
-		errorOut(err.Error())
+		return errorOut(err.Error())
 	}
 
 	c := exec.CommandContext(

@@ -26,18 +26,15 @@ func main() {
 
 	for _, testCase := range testCases {
 		go func() {
-			err = server.RunTestCase(testCase, actionDefinitions)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
+			server.RunTestCase(testCase, actionDefinitions)
 		}()
 	}
 
-	result := <-server.ResultChan
-	if result != nil {
+	if result := server.Wait(); result != nil {
 		fmt.Println(result.Error())
 		os.Exit(1)
 	}
+
 	fmt.Println("All test cases pass!")
 	os.Exit(0)
 }

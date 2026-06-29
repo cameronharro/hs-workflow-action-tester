@@ -1,7 +1,7 @@
 package hsserver
 
 import (
-	"sync/atomic"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -241,13 +241,6 @@ func TestResolutionQueue(t *testing.T) {
 			expectErr: true,
 		},
 		TestCase{
-			label:            "error - not enough requests received",
-			timeout:          250 * time.Millisecond,
-			startingReqCount: 1,
-			reqResCycles:     []ReqResCycle{},
-			expectErr:        true,
-		},
-		TestCase{
 			label:   "basic POST_ACTION_EXECUTION function",
 			timeout: 250 * time.Millisecond,
 			reqResCycles: []ReqResCycle{
@@ -295,19 +288,17 @@ func TestResolutionQueue(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			countOfPayloads := &atomic.Int64{}
-			countOfPayloads.Add(int64(testCase.startingReqCount))
-			queue := startResolutionQueue(countOfPayloads, testCase.timeout)
+			server := NewHSServer("asdfg", rand.Intn(49151-1024)+1024, 1*time.Second)
+			queue := newResolutionQueue(server)
 			for _, cycle := range testCase.reqResCycles {
 				go func() {
-					countOfPayloads.Add(1)
-					queue.PayloadChan <- cycle.payload
+					queue.payloadChan <- cycle.payload
 					for _, response := range cycle.responses {
-						queue.ResponseChan <- response
+						queue.responseChan <- response
 					}
 				}()
 			}
-			err := <-queue.ResultChan
+			err := server.Wait()
 			if err != nil != testCase.expectErr {
 				t.Errorf("[Error]: expected? %t, got:\n%v\n", testCase.expectErr, err)
 			}

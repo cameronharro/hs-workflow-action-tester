@@ -2,21 +2,25 @@ package hsserver
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-func startCallbackListener(port int, responseChan chan<- testResponse) *http.Server {
+func startCallbackListener(s *HSServer, port int) *http.Server {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /{callbackId}/complete", singleCallbackHandleFunc(responseChan))
-	mux.HandleFunc("POST /complete", batchCallbackHandleFunc(responseChan))
+	mux.HandleFunc("POST /{callbackId}/complete", singleCallbackHandleFunc(s.resolutionQueue.responseChan))
+	mux.HandleFunc("POST /complete", batchCallbackHandleFunc(s.resolutionQueue.responseChan))
 	server := http.Server{
 		Handler: mux,
 		Addr:    fmt.Sprintf(":%d", port),
 	}
 	go func() {
-		server.ListenAndServe()
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			fmt.Println(err.Error())
+			s.close()
+		}
 	}()
 	return &server
 }

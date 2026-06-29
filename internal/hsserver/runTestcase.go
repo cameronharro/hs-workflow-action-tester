@@ -24,15 +24,16 @@ func (e *TestCaseError) Error() string {
 func (s *HSServer) RunTestCase(
 	testCase testcase.TestCase,
 	actionDefs []actiondefinition.ActionDefinition,
-) error {
-	s.testsInitiated.Add(1)
+) {
 	actionDef, err := getDefForCase(testCase, actionDefs)
 	if err != nil {
-		return &TestCaseError{testCase, err}
+		s.result.Add(&TestCaseError{testCase, err})
+		return
 	}
 
 	if err = validateCaseAgainstDef(testCase, actionDef); err != nil {
-		return &TestCaseError{testCase, err}
+		s.result.Add(&TestCaseError{testCase, err})
+		return
 	}
 
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
@@ -40,41 +41,45 @@ func (s *HSServer) RunTestCase(
 
 	req, callbackId, err := s.createRequest(ctx, actionDef, testCase)
 	if err != nil {
-		return &TestCaseError{testCase, err}
-	}
-
-	s.resolutionQueue.PayloadChan <- testPayload{
-		CallbackId: callbackId,
-		TestCase:   testCase,
-		ActionDef:  actionDef,
+		s.result.Add(&TestCaseError{testCase, err})
+		return
 	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return &TestCaseError{testCase, err}
+		s.result.Add(&TestCaseError{testCase, err})
+		return
 	}
 
 	if res.StatusCode >= 300 {
-		return &TestCaseError{
+		s.result.Add(&TestCaseError{
 			testCase: testCase,
 			error:    fmt.Errorf("Response status %d from application", res.StatusCode),
-		}
+		})
+		return
 	}
 
 	responseBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return &TestCaseError{testCase, err}
+		s.result.Add(&TestCaseError{testCase, err})
+		return
 	}
 
 	var responseJSON map[string]any
 	err = json.Unmarshal(responseBytes, &responseJSON)
 	if err != nil {
-		return &TestCaseError{testCase, err}
+		s.result.Add(&TestCaseError{testCase, err})
+		return
 	}
 
-	s.resolutionQueue.ResponseChan <- testResponse{
+	s.resolutionQueue.payloadChan <- testPayload{
+		CallbackId: callbackId,
+		TestCase:   testCase,
+		ActionDef:  actionDef,
+	}
+
+	s.resolutionQueue.responseChan <- testResponse{
 		CallbackId:   callbackId,
 		ResponseBody: responseJSON,
 	}
-	return nil
 }

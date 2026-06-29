@@ -1,33 +1,64 @@
 package hsserver
 
 import (
-	"sync/atomic"
+	"context"
+	"errors"
+	"net/http"
+	"sync"
 	"time"
 )
 
 type HSServer struct {
-	clientSecret    string
-	resolutionQueue resolutionQueue
-	ResultChan      <-chan error
-	testsInitiated  *atomic.Int64
+	callbackListener *http.Server
+	clientSecret     string
+	ctx              context.Context
+	cancelFunc       context.CancelFunc
+	resolutionQueue  *resolutionQueue
+	result           *Result
+	waitChan         chan error
 }
 
-func NewHSServer(clientSecret string, port int, queueTimeout time.Duration) *HSServer {
-	resultChan := make(chan error)
-	testsInitiated := atomic.Int64{}
-	resQueue := startResolutionQueue(&testsInitiated, queueTimeout)
-	callbackListener := startCallbackListener(port, resQueue.ResponseChan)
+type Result struct {
+	error error
+	mu    sync.Mutex
+}
+
+func (r *Result) Add(error error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.error = errors.Join(r.error, error)
+}
+
+func NewHSServer(clientSecret string, port int, timeout time.Duration) *HSServer {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), timeout)
+
+	server := &HSServer{
+		clientSecret: clientSecret,
+		ctx:          ctx,
+		cancelFunc:   cancelFunc,
+		result:       &Result{},
+		waitChan:     make(chan error),
+	}
+	server.resolutionQueue = newResolutionQueue(server)
+	server.callbackListener = startCallbackListener(server, port)
 
 	go func() {
-		result := <-resQueue.ResultChan
-		callbackListener.Close()
-		resultChan <- result
+		defer cancelFunc()
+		select {
+		case <-ctx.Done():
+			server.callbackListener.Close()
+			server.waitChan <- server.result.error
+		}
+
 	}()
 
-	return &HSServer{
-		clientSecret:    clientSecret,
-		resolutionQueue: resQueue,
-		ResultChan:      resultChan,
-		testsInitiated:  &testsInitiated,
-	}
+	return server
+}
+
+func (s *HSServer) close() {
+	s.cancelFunc()
+}
+
+func (s *HSServer) Wait() error {
+	return <-s.waitChan
 }

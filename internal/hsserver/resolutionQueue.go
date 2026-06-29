@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"slices"
 	"sync/atomic"
-	"time"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
 	"github.com/cameronharro/hs-workflow-tester/internal/jshelper"
@@ -24,28 +23,26 @@ type testResponse struct {
 }
 
 type resolutionQueue struct {
-	PayloadChan  chan<- testPayload
-	ResponseChan chan<- testResponse
-	ResultChan   <-chan error
+	payloadChan  chan<- testPayload
+	responseChan chan<- testResponse
 }
 
-func startResolutionQueue(testCaseCount *atomic.Int64, timeout time.Duration) resolutionQueue {
+func newResolutionQueue(server *HSServer) *resolutionQueue {
 	payloadChan := make(chan testPayload)
 	responseChan := make(chan testResponse)
-	resultChan := make(chan error)
 	resolutionQueue := resolutionQueue{
-		PayloadChan:  payloadChan,
-		ResponseChan: responseChan,
-		ResultChan:   resultChan,
+		payloadChan:  payloadChan,
+		responseChan: responseChan,
 	}
 
-	payloads := map[string]testPayload{}
-	responsesProcessed := 0
-	var err error
-
 	go func() {
-		ctx, cancelFunc := context.WithTimeout(context.Background(), timeout)
+		ctx, cancelFunc := context.WithCancel(server.ctx)
 		defer cancelFunc()
+		payloads := map[string]testPayload{}
+		testsInitiated := &atomic.Int64{}
+		responsesProcessed := 0
+		var err error
+
 	ProcessingLoop:
 		for {
 			select {
@@ -71,7 +68,7 @@ func startResolutionQueue(testCaseCount *atomic.Int64, timeout time.Duration) re
 
 				responsesProcessed++
 				delete(payloads, response.CallbackId)
-				if responsesProcessed >= int(testCaseCount.Load()) {
+				if responsesProcessed >= int(testsInitiated.Load()) {
 					break ProcessingLoop
 				}
 
@@ -88,12 +85,12 @@ func startResolutionQueue(testCaseCount *atomic.Int64, timeout time.Duration) re
 						},
 					)
 				}
-				if len(payloads)+responsesProcessed < int(testCaseCount.Load()) {
+				if len(payloads)+responsesProcessed < int(testsInitiated.Load()) {
 					err = errors.Join(
 						err,
 						fmt.Errorf(
 							"[TestCases]: Expected %d cases, received %d",
-							testCaseCount.Load(),
+							testsInitiated.Load(),
 							len(payloads)+responsesProcessed,
 						),
 					)
@@ -101,10 +98,11 @@ func startResolutionQueue(testCaseCount *atomic.Int64, timeout time.Duration) re
 				break ProcessingLoop
 			}
 		}
-		resultChan <- err
+		server.result.Add(err)
+		server.close()
 	}()
 
-	return resolutionQueue
+	return &resolutionQueue
 }
 
 func checkResponseAgainstPayload(payload testPayload, response testResponse) error {

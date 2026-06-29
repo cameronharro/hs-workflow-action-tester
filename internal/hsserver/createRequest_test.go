@@ -88,7 +88,7 @@ func TestCreateRequest(t *testing.T) {
 		},
 	}
 
-	server := NewHSServer("asdfaegwagfasgrasef", 8080)
+	server := NewHSServer("asdfaegwagfasgrasef", 8080, 1*time.Second)
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
 			ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second)

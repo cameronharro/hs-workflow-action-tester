@@ -12,10 +12,10 @@ type HSServer struct {
 	testsInitiated  *atomic.Int64
 }
 
-func NewHSServer(clientSecret string, port int) *HSServer {
+func NewHSServer(clientSecret string, port int, queueTimeout time.Duration) *HSServer {
 	resultChan := make(chan error)
 	testsInitiated := atomic.Int64{}
-	resQueue := startResolutionQueue(&testsInitiated, 5*time.Second)
+	resQueue := startResolutionQueue(&testsInitiated, queueTimeout)
 	callbackListener := startCallbackListener(port, resQueue.ResponseChan)
 
 	go func() {

@@ -10,17 +10,19 @@ import (
 )
 
 func main() {
-	testCases, err := testcase.Parse("./testCases.csv")
+	flags := initFlags()
+
+	testCases, err := testcase.Parse(flags.TestCasePath)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	actionDefinitions, err := getActionDefs(".")
+	actionDefinitions, err := getActionDefs(flags.HSProjectRoot)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	server := hsserver.NewHSServer("1234", 8080)
+	server := hsserver.NewHSServer(flags.ClientSecret, flags.AsyncListenerPort, flags.Timeout)
 
 	for _, testCase := range testCases {
 		go func() {

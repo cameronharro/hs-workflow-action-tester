@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sync/atomic"
+	"time"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
 	"github.com/cameronharro/hs-workflow-tester/internal/jshelper"
@@ -39,7 +39,7 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 		ctx, cancelFunc := context.WithCancel(server.ctx)
 		defer cancelFunc()
 		payloads := map[string]testPayload{}
-		testsInitiated := &atomic.Int64{}
+		testsInitiated := 0
 		responsesProcessed := 0
 		var err error
 
@@ -47,6 +47,7 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 		for {
 			select {
 			case payload := <-payloadChan:
+				testsInitiated++
 				payloads[payload.CallbackId] = payload
 
 			case response := <-responseChan:
@@ -68,7 +69,11 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 
 				responsesProcessed++
 				delete(payloads, response.CallbackId)
-				if responsesProcessed >= int(testsInitiated.Load()) {
+				if responsesProcessed >= testsInitiated {
+					break ProcessingLoop
+				}
+			case <-time.After(1 * time.Second):
+				if responsesProcessed == testsInitiated {
 					break ProcessingLoop
 				}
 
@@ -85,12 +90,12 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 						},
 					)
 				}
-				if len(payloads)+responsesProcessed < int(testsInitiated.Load()) {
+				if len(payloads)+responsesProcessed < testsInitiated {
 					err = errors.Join(
 						err,
 						fmt.Errorf(
 							"[TestCases]: Expected %d cases, received %d",
-							testsInitiated.Load(),
+							testsInitiated,
 							len(payloads)+responsesProcessed,
 						),
 					)

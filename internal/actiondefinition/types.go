@@ -11,6 +11,7 @@ func (c *ActionConfig) UnmarshalJSON(data []byte) error {
 		ExecutionRules []ExecutionRule   `json:"executionRules"`
 		InputFields    []InputField      `json:"inputFields"`
 		Functions      []json.RawMessage `json:"functions"`
+		ObjectTypes    []string          `json:"objectTypes"`
 	}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -19,6 +20,7 @@ func (c *ActionConfig) UnmarshalJSON(data []byte) error {
 	c.InputFields = raw.InputFields
 	c.ActionURL = raw.ActionURL
 	c.ExecutionRules = raw.ExecutionRules
+	c.ObjectTypes = raw.ObjectTypes
 
 	for _, rawFunc := range raw.Functions {
 		var disc struct {

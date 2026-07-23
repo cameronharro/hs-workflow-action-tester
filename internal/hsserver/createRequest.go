@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
 	"github.com/cameronharro/hs-workflow-tester/internal/jshelper"
@@ -28,10 +30,14 @@ func (s *HSServer) createRequest(
 
 	callbackId = fmt.Sprintf("ap-%d-%d-0-1", rand.Int(), rand.Int())
 
+	method := "POST"
 	url := actionDef.Config.ActionURL
 	if testCase.ActionURL != "" {
 		url = testCase.ActionURL
 	}
+	headers := map[string]string{}
+	var serializedBody []byte
+
 	origin := Origin{
 		PortalID: testCase.PortalID,
 	}
@@ -39,6 +45,7 @@ func (s *HSServer) createRequest(
 		ObjectID:   testCase.ObjectID,
 		ObjectType: testCase.ObjectType,
 	}
+
 	if preActionFunction := actionDef.GetPreActionFunction(); preActionFunction != nil {
 		jsCallback, err := jshelper.RunPreActionFunction(
 			jshelper.PreActionEvent{
@@ -54,33 +61,18 @@ func (s *HSServer) createRequest(
 			return nil, "", err
 		}
 
-		callbackBody, err := json.Marshal(jsCallback.Body)
+		method = string(jsCallback.HttpMethod)
+		url = jsCallback.WebhookURL
+		if jsCallback.HttpHeaders != nil {
+			headers = jsCallback.HttpHeaders
+		}
+		headers["content-type"] = jsCallback.ContentType
+		headers["accept"] = jsCallback.Accept
+
+		serializedBody, err = json.Marshal(jsCallback.Body)
 		if err != nil {
 			return nil, "", err
 		}
-
-		req, err = http.NewRequestWithContext(
-			ctx,
-			string(jsCallback.HttpMethod),
-			jsCallback.WebhookURL,
-			bytes.NewBuffer(callbackBody),
-		)
-		if err != nil {
-			return nil, "", err
-		}
-
-		for headerKey, headerValue := range jsCallback.HttpHeaders {
-			req.Header.Add(headerKey, headerValue)
-		}
-		req.Header.Add(
-			"X-HubSpot-Signature",
-			signRequestV2(
-				s.clientSecret,
-				string(jsCallback.HttpMethod),
-				jsCallback.WebhookURL,
-				callbackBody,
-			),
-		)
 
 	} else {
 		type Body struct {
@@ -95,34 +87,45 @@ func (s *HSServer) createRequest(
 			Object:     object,
 			Origin:     origin,
 		}
-		serializedBody, err := json.Marshal(body)
+		serializedBody, err = json.Marshal(body)
 		if err != nil {
 			return nil, "", err
 		}
 
-		method := "POST"
-		req, err = http.NewRequestWithContext(
-			ctx,
-			method,
-			url,
-			bytes.NewReader(serializedBody),
-		)
-		if err != nil {
-			return nil, "", err
-		}
-
-		req.Header.Add(
-			"X-HubSpot-Signature",
-			signRequestV2(
-				s.clientSecret,
-				method,
-				actionDef.Config.ActionURL,
-				serializedBody,
-			),
-		)
 	}
 
-	req.Header.Add("Content-Type", "application/json")
+	req, err = http.NewRequestWithContext(
+		ctx,
+		method,
+		url,
+		bytes.NewReader(serializedBody),
+	)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if _, ok := headers["content-type"]; !ok {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
+	for headerKey, headerValue := range headers {
+		req.Header.Add(headerKey, headerValue)
+	}
+
+	req.Header.Add("x-hubspot-signature", "v2")
+	req.Header.Add(
+		"X-HubSpot-Signature",
+		signRequestV2(
+			s.clientSecret,
+			method,
+			url,
+			serializedBody,
+		),
+	)
+	timestamp := time.Now().UnixMilli()
+	v3Signature := signRequestV3(s.clientSecret, method, url, serializedBody, timestamp)
+	req.Header.Add("x-hubspot-signature-v3", v3Signature)
+	req.Header.Add("x-hubspot-request-timestamp", strconv.Itoa(int(timestamp)))
 
 	return req, callbackId, nil
 }

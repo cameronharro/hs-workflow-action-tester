@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestSignRequest(t *testing.T) {
+func TestSignRequestV2(t *testing.T) {
 	type TestCase struct {
 		clientSecret string
 		method       string
@@ -27,6 +27,43 @@ func TestSignRequest(t *testing.T) {
 	for i, testCase := range testCases {
 		t.Run(fmt.Sprintf("Test %d:\n", i+1), func(t *testing.T) {
 			result := signRequestV2(testCase.clientSecret, testCase.method, testCase.uri, testCase.body)
+			if result != testCase.result {
+				t.Errorf("Expected %s, got %s", testCase.result, result)
+			}
+		})
+	}
+}
+
+func TestSignRequestV3(t *testing.T) {
+	type TestCase struct {
+		clientSecret string
+		method       string
+		uri          string
+		body         []byte
+		timestamp    int64
+		result       string
+	}
+
+	testCases := []TestCase{
+		{
+			clientSecret: "58974414-44e2-43c9-9624-1e95d38b592f",
+			method:       "POST",
+			uri:          "https://webhook.site/bf8f4ab6-da3e-4994-b436-61144fb08927",
+			body:         []byte(`{"callbackId":"ap-51779958-2693019810947-2-0","origin":{"portalId":51779958,"userId":null,"actionDefinitionId":269433646,"actionDefinitionVersion":1,"actionExecutionIndexIdentifier":{"enrollmentId":2693019810947,"actionExecutionIndex":0},"extensionDefinitionId":269433646,"extensionDefinitionVersionId":1},"context":{"workflowId":1856073041,"actionId":2,"actionExecutionIndexIdentifier":{"enrollmentId":2693019810947,"actionExecutionIndex":0},"source":"WORKFLOWS"},"object":{"objectId":237176026394,"objectType":"CONTACT"},"fields":{"label":"Brian Halligan (Sample Contact)","value":"237176026394"},"inputFields":{"label":"Brian Halligan (Sample Contact)","value":"237176026394"},"typedInputs":{"label":{"value":"Brian Halligan (Sample Contact)","type":"STRING"},"value":{"value":"237176026394","type":"STRING"}}}`),
+			timestamp:    1784831242048,
+			result:       "DFxvb9WngT3NuTXubw97j79wzBfN4ngYrxE6xcVmJCU=",
+		},
+	}
+
+	for i, testCase := range testCases {
+		t.Run(fmt.Sprintf("Test %d:\n", i+1), func(t *testing.T) {
+			result := signRequestV3(
+				testCase.clientSecret,
+				testCase.method,
+				testCase.uri,
+				testCase.body,
+				testCase.timestamp,
+			)
 			if result != testCase.result {
 				t.Errorf("Expected %s, got %s", testCase.result, result)
 			}

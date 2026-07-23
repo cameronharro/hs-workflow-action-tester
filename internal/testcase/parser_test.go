@@ -32,10 +32,10 @@ func TestParse(t *testing.T) {
 						"label": "Brian Halligan",
 						"value": json.Number("1234"),
 					},
-					ObjectID:               123,
-					ObjectType:             "CONTACT",
-					PortalID:               111,
-					ExpectedExecutionLabel: "Success",
+					ObjectID:              123,
+					ObjectType:            "CONTACT",
+					PortalID:              111,
+					ExpectedExecutionRule: "Success",
 				},
 				{
 					TestLabel: "2",
@@ -45,10 +45,10 @@ func TestParse(t *testing.T) {
 						"label": "Maria Johnson",
 						"value": json.Number("9876"),
 					},
-					ObjectID:               987,
-					ObjectType:             "CONTACT",
-					PortalID:               222,
-					ExpectedExecutionLabel: "Failure",
+					ObjectID:              987,
+					ObjectType:            "CONTACT",
+					PortalID:              222,
+					ExpectedExecutionRule: "Failure",
 				},
 			},
 		},
@@ -102,7 +102,7 @@ func TestParse(t *testing.T) {
 				return
 			}
 			matches := slices.EqualFunc(result, thisCase.result, func(a, b testcase.TestCase) bool {
-				if a.ExpectedExecutionLabel != b.ExpectedExecutionLabel {
+				if a.ExpectedExecutionRule != b.ExpectedExecutionRule {
 					fmt.Println("Mismatched executionLabel")
 					return false
 				}

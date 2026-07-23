@@ -140,12 +140,12 @@ func checkResponseAgainstPayload(payload testPayload, response testResponse) err
 	}
 
 	executionRuleLabel := payload.ActionDef.GetMatchingExecutionRule(outputFields)
-	if executionRuleLabel != payload.TestCase.ExpectedExecutionLabel {
+	if executionRuleLabel != payload.TestCase.ExpectedExecutionRule {
 		return &TestCaseError{
 			testCase: payload.TestCase,
 			error: fmt.Errorf(
 				"Expected execution label %s, received %s",
-				payload.TestCase.ExpectedExecutionLabel,
+				payload.TestCase.ExpectedExecutionRule,
 				executionRuleLabel,
 			),
 		}

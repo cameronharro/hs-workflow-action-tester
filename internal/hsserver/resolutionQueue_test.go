@@ -64,8 +64,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:              "success",
-							ExpectedExecutionLabel: "Success",
+							TestLabel:             "success",
+							ExpectedExecutionRule: "Success",
 						},
 						ActionDef: actionDef,
 					},
@@ -85,8 +85,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "456",
 						TestCase: testcase.TestCase{
-							TestLabel:              "failure",
-							ExpectedExecutionLabel: "Failure",
+							TestLabel:             "failure",
+							ExpectedExecutionRule: "Failure",
 						},
 						ActionDef: actionDef,
 					},
@@ -106,8 +106,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "789",
 						TestCase: testcase.TestCase{
-							TestLabel:              "blank",
-							ExpectedExecutionLabel: "",
+							TestLabel:             "blank",
+							ExpectedExecutionRule: "",
 						},
 						ActionDef: actionDef,
 					},
@@ -133,8 +133,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:              "success",
-							ExpectedExecutionLabel: "Success",
+							TestLabel:             "success",
+							ExpectedExecutionRule: "Success",
 						},
 						ActionDef: actionDef,
 					},
@@ -150,8 +150,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:              "success",
-							ExpectedExecutionLabel: "Success",
+							TestLabel:             "success",
+							ExpectedExecutionRule: "Success",
 						},
 						ActionDef: actionDef,
 					},
@@ -185,8 +185,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:              "success",
-							ExpectedExecutionLabel: "Success",
+							TestLabel:             "success",
+							ExpectedExecutionRule: "Success",
 						},
 						ActionDef: actionDef,
 					},
@@ -221,8 +221,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:              "success",
-							ExpectedExecutionLabel: "Success",
+							TestLabel:             "success",
+							ExpectedExecutionRule: "Success",
 						},
 						ActionDef: actionDef,
 					},
@@ -248,8 +248,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:              "success",
-							ExpectedExecutionLabel: "Success",
+							TestLabel:             "success",
+							ExpectedExecutionRule: "Success",
 						},
 						ActionDef: actionDefWithPostFunction,
 					},
@@ -270,8 +270,8 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:              "success",
-							ExpectedExecutionLabel: "Success",
+							TestLabel:             "success",
+							ExpectedExecutionRule: "Success",
 						},
 						ActionDef: actionDefWithInvalidPostFunction,
 					},

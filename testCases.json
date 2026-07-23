@@ -1,0 +1,28 @@
+[
+  {
+    "testLabel": "1",
+    "actionUID": "test_action",
+    "actionURL": "http://localhost:3000",
+    "inputFields": {
+      "label": "Brian Halligan",
+      "value": "1234"
+    },
+    "objectID": 1234,
+    "objectType": "CONTACT",
+    "portalID": 111,
+    "expectedExecutionRule": "success"
+  },
+  {
+    "testLabel": "2",
+    "actionUID": "test_action",
+    "actionURL": "http://localhost:3000",
+    "inputFields": {
+      "label": "Maria Johnson",
+      "value": "9876"
+    },
+    "objectID": 9876,
+    "objectType": "CONTACT",
+    "portalID": 222,
+    "expectedExecutionRule": "failure"
+  }
+]

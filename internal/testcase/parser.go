@@ -15,14 +15,14 @@ const (
 )
 
 type TestCase struct {
-	TestLabel              string         `json:"testLabel"`
-	ActionUID              string         `json:"actionUID"`
-	ActionURL              string         `json:"actionURL"`
-	InputFields            map[string]any `json:"inputFields"`
-	ObjectID               int            `json:"objectID"`
-	ObjectType             string         `json:"objectType"`
-	PortalID               int            `json:"portalID"`
-	ExpectedExecutionLabel string         `json:"expectedExecutionLabel"`
+	TestLabel             string         `json:"testLabel"`
+	ActionUID             string         `json:"actionUID"`
+	ActionURL             string         `json:"actionURL"`
+	InputFields           map[string]any `json:"inputFields"`
+	ObjectID              int            `json:"objectID"`
+	ObjectType            string         `json:"objectType"`
+	PortalID              int            `json:"portalID"`
+	ExpectedExecutionRule string         `json:"expectedExecutionRule"`
 }
 
 func Parse(filePath string) ([]TestCase, error) {

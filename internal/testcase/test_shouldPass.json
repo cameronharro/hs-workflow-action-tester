@@ -1,0 +1,28 @@
+[
+  {
+    "testLabel": "1",
+    "actionUID": "test_action",
+    "actionURL": "http://localhost:3000",
+    "inputFields": {
+      "label": "Brian Halligan",
+      "value": 1234
+    },
+    "objectID": 123,
+    "objectType": "CONTACT",
+    "portalID": 111,
+    "expectedExecutionLabel": "Success"
+  },
+  {
+    "testLabel": "2",
+    "actionUID": "new_action",
+    "actionURL": "https://api.hubapi.com/crm",
+    "inputFields": {
+      "label": "Maria Johnson",
+      "value": 9876
+    },
+    "objectID": 987,
+    "objectType": "CONTACT",
+    "portalID": 222,
+    "expectedExecutionLabel": "Failure"
+  }
+]

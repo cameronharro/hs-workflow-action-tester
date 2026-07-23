@@ -1,95 +1,71 @@
 package testcase
 
 import (
-	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
-	"strconv"
+)
+
+type TestType string
+
+const (
+	Action TestType = "action"
+	Option TestType = "option"
 )
 
 type TestCase struct {
-	TestLabel              string
-	ActionUID              string
-	ActionURL              string
-	InputFields            map[string]any
-	ObjectID               int
-	ObjectType             string
-	PortalID               int
-	ExpectedExecutionLabel string
+	TestLabel              string         `json:"testLabel"`
+	ActionUID              string         `json:"actionUID"`
+	ActionURL              string         `json:"actionURL"`
+	InputFields            map[string]any `json:"inputFields"`
+	ObjectID               int            `json:"objectID"`
+	ObjectType             string         `json:"objectType"`
+	PortalID               int            `json:"portalID"`
+	ExpectedExecutionLabel string         `json:"expectedExecutionLabel"`
 }
 
 func Parse(filePath string) ([]TestCase, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to open file at %s: %w", filePath, err)
 	}
 	defer file.Close()
-	return parse(file)
-}
 
-func parse(data io.Reader) ([]TestCase, error) {
-	reader := csv.NewReader(data)
-	headers, err := reader.Read()
+	var testCases []TestCase
+	decoder := json.NewDecoder(file)
+	decoder.UseNumber()
+	err = decoder.Decode(&testCases)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse %s: %w", filePath, err)
 	}
 
-	records, err := reader.ReadAll()
-	if err != nil {
-		return nil, err
+	if len(testCases) == 0 {
+		return nil, fmt.Errorf("No test cases provided at %s: %w", filePath, err)
 	}
 
-	if len(records) == 0 {
-		return nil, errors.New("No test cases provided")
+	var invalidTestCases error
+	for i, testCase := range testCases {
+		if testCase.ActionUID == "" {
+			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No actionUID provided", i))
+		}
+		if testCase.ObjectType == "" {
+			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No objectType provided", i))
+		}
+		if testCase.TestLabel == "" {
+			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No testLabel provided", i))
+		}
+		if testCase.PortalID == 0 {
+			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No portalID provided", i))
+		}
+		if testCase.ObjectID == 0 {
+			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No objectID provided", i))
+		}
 	}
 
-	result := make([]TestCase, len(records))
-	for i, record := range records {
-		c := TestCase{
-			InputFields: map[string]any{},
-		}
-		for j, col := range record {
-			switch headers[j] {
-			case "actionUID":
-				c.ActionUID = col
-			case "actionURL":
-				c.ActionURL = col
-			case "expectedExecutionLabel":
-				c.ExpectedExecutionLabel = col
-			case "testLabel":
-				c.TestLabel = col
-			case "objectId":
-				n, err := strconv.Atoi(col)
-				if err != nil {
-					return nil, fmt.Errorf("Invalid objectId: %s", col)
-				}
-
-				c.ObjectID = n
-			case "objectType":
-				c.ObjectType = col
-			case "portalId":
-				n, err := strconv.Atoi(col)
-				if err != nil {
-					return nil, fmt.Errorf("Invalid portalId: %s", col)
-				}
-
-				c.PortalID = n
-			default:
-				c.InputFields[headers[j]] = col
-			}
-		}
-		if c.ActionUID == "" {
-			return nil, errors.New("No actionUID provided")
-		}
-		if c.ObjectType == "" {
-			return nil, errors.New("No objectType provided")
-		}
-		if c.TestLabel == "" {
-			return nil, errors.New("No testLabel provided")
-		}
-		result[i] = c
+	if invalidTestCases != nil {
+		return nil, invalidTestCases
 	}
-	return result, nil
+
+	return testCases, nil
 }

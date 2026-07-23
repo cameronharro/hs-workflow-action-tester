@@ -1,0 +1,15 @@
+[
+  {
+    "testLabel": 1,
+    "actionUID": "test_action",
+    "actionURL": "http://localhost:3000",
+    "inputFields": {
+      "label": "Brian Halligan",
+      "value": 1234
+    },
+    "objectID": "123",
+    "objectType": "CONTACT",
+    "portalID": 111,
+    "expectedExecutionLabel": "Success"
+  }
+]

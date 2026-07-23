@@ -24,10 +24,12 @@ type Option struct {
 	Label string `json:"label"`
 }
 type EnumTypeDefinition struct {
-	Name      string   `json:"name"`
-	Type      string   `json:"type"`
-	FieldType string   `json:"fieldType"`
-	Options   []Option `json:"options"`
+	Name            string   `json:"name"`
+	Type            string   `json:"type"`
+	FieldType       string   `json:"fieldType"`
+	Options         []Option `json:"options"`
+	ExternalOptions bool     `json:"externalOptions"`
+	OptionsURL      string   `json:"optionsUrl"`
 }
 
 func (e EnumTypeDefinition) GetName() string {

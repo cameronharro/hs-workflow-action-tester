@@ -76,33 +76,30 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 				responsesProcessed.Add(1)
 				delete(payloads, response.CallbackId)
 			case <-time.After(1 * time.Second):
-				if allTestsBegun.Load() && responsesProcessed.Load() == testsInitiated.Load() {
+				if allTestsBegun.Load() && (ctx.Err() != nil || responsesProcessed.Load() == testsInitiated.Load()) {
 					break ProcessingLoop
 				}
-
-			case <-ctx.Done():
-				for callbackId, payload := range payloads {
-					server.AddResult(
-						&TestCaseError{
-							testCase: payload.TestCase,
-							error: fmt.Errorf(
-								"No response received for callback Id %s",
-								callbackId,
-							),
-						},
-					)
-				}
-				if len(payloads)+int(responsesProcessed.Load()) < int(testsInitiated.Load()) {
-					server.AddResult(
-						fmt.Errorf(
-							"[TestCases]: Expected %d cases, received %d",
-							testsInitiated.Load(),
-							len(payloads)+int(responsesProcessed.Load()),
-						),
-					)
-				}
-				break ProcessingLoop
 			}
+		}
+		for callbackId, payload := range payloads {
+			server.AddResult(
+				&TestCaseError{
+					testCase: payload.TestCase,
+					error: fmt.Errorf(
+						"No response received for callback Id %s",
+						callbackId,
+					),
+				},
+			)
+		}
+		if len(payloads)+int(responsesProcessed.Load()) < int(testsInitiated.Load()) {
+			server.AddResult(
+				fmt.Errorf(
+					"[TestCases]: Expected %d cases, received %d",
+					testsInitiated.Load(),
+					len(payloads)+int(responsesProcessed.Load()),
+				),
+			)
 		}
 		server.close()
 	}()

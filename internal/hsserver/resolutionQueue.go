@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sync/atomic"
 	"time"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/actiondefinition"
@@ -23,38 +24,40 @@ type testResponse struct {
 }
 
 type resolutionQueue struct {
-	payloadChan  chan<- testPayload
-	responseChan chan<- testResponse
+	testsInitiated     *atomic.Int64
+	responsesProcessed *atomic.Int64
+	payloadChan        chan<- testPayload
+	responseChan       chan<- testResponse
 }
 
 func newResolutionQueue(server *HSServer) *resolutionQueue {
 	payloadChan := make(chan testPayload)
 	responseChan := make(chan testResponse)
+	testsInitiated := &atomic.Int64{}
+	responsesProcessed := &atomic.Int64{}
 	resolutionQueue := resolutionQueue{
-		payloadChan:  payloadChan,
-		responseChan: responseChan,
+		payloadChan:        payloadChan,
+		responseChan:       responseChan,
+		testsInitiated:     testsInitiated,
+		responsesProcessed: responsesProcessed,
 	}
 
 	go func() {
 		ctx, cancelFunc := context.WithCancel(server.ctx)
 		defer cancelFunc()
 		payloads := map[string]testPayload{}
-		testsInitiated := 0
-		responsesProcessed := 0
-		var err error
 
 	ProcessingLoop:
 		for {
 			select {
 			case payload := <-payloadChan:
-				testsInitiated++
 				payloads[payload.CallbackId] = payload
 
 			case response := <-responseChan:
 
 				payload, ok := payloads[response.CallbackId]
 				if !ok {
-					err = errors.Join(err, fmt.Errorf("Missing testCase for callback: %s", response.CallbackId))
+					server.AddResult(fmt.Errorf("Missing testCase for callback: %s", response.CallbackId))
 					continue
 				}
 
@@ -64,23 +67,22 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 					if !errors.As(comparisonError, &target) {
 						continue
 					}
-					err = errors.Join(err, comparisonError)
+					server.AddResult(comparisonError)
 				}
 
-				responsesProcessed++
+				responsesProcessed.Add(1)
 				delete(payloads, response.CallbackId)
-				if responsesProcessed >= testsInitiated {
+				if responsesProcessed.Load() >= testsInitiated.Load() {
 					break ProcessingLoop
 				}
 			case <-time.After(1 * time.Second):
-				if responsesProcessed == testsInitiated {
+				if responsesProcessed.Load() == testsInitiated.Load() {
 					break ProcessingLoop
 				}
 
 			case <-ctx.Done():
 				for callbackId, payload := range payloads {
-					err = errors.Join(
-						err,
+					server.AddResult(
 						&TestCaseError{
 							testCase: payload.TestCase,
 							error: fmt.Errorf(
@@ -90,20 +92,18 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 						},
 					)
 				}
-				if len(payloads)+responsesProcessed < testsInitiated {
-					err = errors.Join(
-						err,
+				if len(payloads)+int(responsesProcessed.Load()) < int(testsInitiated.Load()) {
+					server.AddResult(
 						fmt.Errorf(
 							"[TestCases]: Expected %d cases, received %d",
-							testsInitiated,
-							len(payloads)+responsesProcessed,
+							testsInitiated.Load(),
+							len(payloads)+int(responsesProcessed.Load()),
 						),
 					)
 				}
 				break ProcessingLoop
 			}
 		}
-		server.result.Add(err)
 		server.close()
 	}()
 

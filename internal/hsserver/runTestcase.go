@@ -25,14 +25,16 @@ func (s *HSServer) RunTestCase(
 	testCase testcase.TestCase,
 	actionDefs []actiondefinition.ActionDefinition,
 ) {
+	s.resolutionQueue.testsInitiated.Add(1)
+
 	actionDef, err := getDefForCase(testCase, actionDefs)
 	if err != nil {
-		s.result.Add(&TestCaseError{testCase, err})
+		s.AddResult(&TestCaseError{testCase, err})
 		return
 	}
 
 	if err = validateCaseAgainstDef(testCase, actionDef); err != nil {
-		s.result.Add(&TestCaseError{testCase, err})
+		s.AddResult(&TestCaseError{testCase, err})
 		return
 	}
 
@@ -41,18 +43,18 @@ func (s *HSServer) RunTestCase(
 
 	req, callbackId, err := s.createRequest(ctx, actionDef, testCase)
 	if err != nil {
-		s.result.Add(&TestCaseError{testCase, err})
+		s.AddResult(&TestCaseError{testCase, err})
 		return
 	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		s.result.Add(&TestCaseError{testCase, err})
+		s.AddResult(&TestCaseError{testCase, err})
 		return
 	}
 
 	if res.StatusCode >= 300 {
-		s.result.Add(&TestCaseError{
+		s.AddResult(&TestCaseError{
 			testCase: testCase,
 			error:    fmt.Errorf("Response status %d from application", res.StatusCode),
 		})
@@ -61,14 +63,14 @@ func (s *HSServer) RunTestCase(
 
 	responseBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		s.result.Add(&TestCaseError{testCase, err})
+		s.AddResult(&TestCaseError{testCase, err})
 		return
 	}
 
 	var responseJSON map[string]any
 	err = json.Unmarshal(responseBytes, &responseJSON)
 	if err != nil {
-		s.result.Add(&TestCaseError{testCase, err})
+		s.AddResult(&TestCaseError{testCase, err})
 		return
 	}
 

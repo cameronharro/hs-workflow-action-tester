@@ -23,10 +23,11 @@ type Result struct {
 	mu    sync.Mutex
 }
 
-func (r *Result) Add(error error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.error = errors.Join(r.error, error)
+func (s *HSServer) AddResult(error error) {
+	s.result.mu.Lock()
+	defer s.result.mu.Unlock()
+	s.result.error = errors.Join(s.result.error, error)
+	s.resolutionQueue.responsesProcessed.Add(1)
 }
 
 func NewHSServer(clientSecret string, port int, timeout time.Duration) *HSServer {

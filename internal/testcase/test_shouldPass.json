@@ -10,7 +10,7 @@
     "objectID": 123,
     "objectType": "CONTACT",
     "portalID": 111,
-    "expectedExecutionLabel": "Success"
+    "expectedExecutionRule": "Success"
   },
   {
     "testLabel": "2",
@@ -23,6 +23,6 @@
     "objectID": 987,
     "objectType": "CONTACT",
     "portalID": 222,
-    "expectedExecutionLabel": "Failure"
+    "expectedExecutionRule": "Failure"
   }
 ]

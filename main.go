@@ -25,9 +25,7 @@ func main() {
 	server := hsserver.NewHSServer(flags.ClientSecret, flags.AsyncListenerPort, flags.Timeout)
 
 	for _, testCase := range testCases {
-		go func() {
-			server.RunTestCase(testCase, actionDefinitions)
-		}()
+		server.RunTestCase(testCase, actionDefinitions)
 	}
 
 	if result := server.Wait(); result != nil {

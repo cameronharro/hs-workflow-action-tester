@@ -24,6 +24,7 @@ type testResponse struct {
 }
 
 type resolutionQueue struct {
+	allTestsBegun      *atomic.Bool
 	testsInitiated     *atomic.Int64
 	responsesProcessed *atomic.Int64
 	payloadChan        chan<- testPayload
@@ -35,9 +36,11 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 	responseChan := make(chan testResponse)
 	testsInitiated := &atomic.Int64{}
 	responsesProcessed := &atomic.Int64{}
+	allTestsBegun := &atomic.Bool{}
 	resolutionQueue := resolutionQueue{
 		payloadChan:        payloadChan,
 		responseChan:       responseChan,
+		allTestsBegun:      allTestsBegun,
 		testsInitiated:     testsInitiated,
 		responsesProcessed: responsesProcessed,
 	}
@@ -72,11 +75,8 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 
 				responsesProcessed.Add(1)
 				delete(payloads, response.CallbackId)
-				if responsesProcessed.Load() >= testsInitiated.Load() {
-					break ProcessingLoop
-				}
 			case <-time.After(1 * time.Second):
-				if responsesProcessed.Load() == testsInitiated.Load() {
+				if allTestsBegun.Load() && responsesProcessed.Load() == testsInitiated.Load() {
 					break ProcessingLoop
 				}
 

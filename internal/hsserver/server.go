@@ -61,5 +61,6 @@ func (s *HSServer) close() {
 }
 
 func (s *HSServer) Wait() error {
+	s.resolutionQueue.allTestsBegun.Store(true)
 	return <-s.waitChan
 }

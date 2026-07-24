@@ -7,24 +7,6 @@ import (
 	"os"
 )
 
-type TestType string
-
-const (
-	Action TestType = "action"
-	Option TestType = "option"
-)
-
-type TestCase struct {
-	TestLabel             string         `json:"testLabel"`
-	ActionUID             string         `json:"actionUID"`
-	ActionURL             string         `json:"actionURL"`
-	InputFields           map[string]any `json:"inputFields"`
-	ObjectID              int            `json:"objectID"`
-	ObjectType            string         `json:"objectType"`
-	PortalID              int            `json:"portalID"`
-	ExpectedExecutionRule string         `json:"expectedExecutionRule"`
-}
-
 func Parse(filePath string) ([]TestCase, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -47,19 +29,16 @@ func Parse(filePath string) ([]TestCase, error) {
 	var invalidTestCases error
 	for i, testCase := range testCases {
 		if testCase.ActionUID == "" {
-			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No actionUID provided", i))
-		}
-		if testCase.ObjectType == "" {
-			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No objectType provided", i))
+			invalidTestCases = errors.Join(invalidTestCases, fmt.Errorf("[TestCase %d]: No actionUID provided", i))
 		}
 		if testCase.TestLabel == "" {
-			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No testLabel provided", i))
+			invalidTestCases = errors.Join(invalidTestCases, fmt.Errorf("[TestCase %d]: No testLabel provided", i))
 		}
 		if testCase.PortalID == 0 {
-			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No portalID provided", i))
+			invalidTestCases = errors.Join(invalidTestCases, fmt.Errorf("[TestCase %d]: No portalID provided", i))
 		}
-		if testCase.ObjectID == 0 {
-			invalidTestCases = errors.Join(fmt.Errorf("[TestCase %d]: No objectID provided", i))
+		if err := testCase.Test.Validate(); err != nil {
+			invalidTestCases = errors.Join(invalidTestCases, fmt.Errorf("[TestCase %d]: %w", i, err))
 		}
 	}
 

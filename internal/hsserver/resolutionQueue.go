@@ -92,12 +92,12 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 				},
 			)
 		}
-		if len(payloads)+int(responsesProcessed.Load()) < int(testsInitiated.Load()) {
+		if int(responsesProcessed.Load()) < int(testsInitiated.Load()) {
 			server.AddResult(
 				fmt.Errorf(
 					"[TestCases]: Expected %d cases, received %d",
 					testsInitiated.Load(),
-					len(payloads)+int(responsesProcessed.Load()),
+					int(responsesProcessed.Load()),
 				),
 			)
 		}

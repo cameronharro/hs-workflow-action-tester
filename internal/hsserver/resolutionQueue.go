@@ -66,8 +66,7 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 
 				comparisonError := checkResponseAgainstPayload(payload, response)
 				if comparisonError != nil {
-					var target *TestCaseError
-					if !errors.As(comparisonError, &target) {
+					if errors.Is(comparisonError, asyncSignal) {
 						continue
 					}
 					server.AddResult(comparisonError)
@@ -107,6 +106,8 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 	return &resolutionQueue
 }
 
+var asyncSignal = errors.New("Resolution will be asynchronous, ignore")
+
 func checkResponseAgainstPayload(payload testPayload, response testResponse) error {
 	var outputFields map[string]any
 	if postActionFunc := payload.ActionDef.GetPostActionFunction(); postActionFunc != nil {
@@ -121,15 +122,7 @@ func checkResponseAgainstPayload(payload testPayload, response testResponse) err
 			}
 		}
 		outputFields = postActionCallback.OutputFields
-	} else if rawOutputFields, ok := response.ResponseBody["outputFields"]; ok {
-		outputFields, ok = rawOutputFields.(map[string]any)
-	}
-
-	hsExState, stateErr := getExecutionState(outputFields["hs_execution_state"])
-	if stateErr != nil {
-		return &TestCaseError{
-			testCase: payload.TestCase,
-			error:    stateErr,
+			return asyncSignal
 		}
 	}
 	if slices.Contains([]hsExecutionState{Async, Block}, hsExState) {

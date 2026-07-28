@@ -46,20 +46,23 @@ func (n NumberTypeDefinition) GetName() string {
 }
 
 type InputField struct {
-	TypeDefinition FieldTypeDefinition `json:"typeDefinition"`
-	IsRequired     bool                `json:"isRequired"`
+	TypeDefinition      FieldTypeDefinition `json:"typeDefinition"`
+	SupportedValueTypes []string            `json:"supportedValueTypes"`
+	IsRequired          bool                `json:"isRequired"`
 }
 
 func (c *InputField) UnmarshalJSON(data []byte) error {
 	var raw struct {
-		TypeDefinition json.RawMessage `json:"typeDefinition"`
-		IsRequired     bool            `json:"isRequired"`
+		TypeDefinition      json.RawMessage `json:"typeDefinition"`
+		SupportedValueTypes []string        `json:"supportedValueTypes"`
+		IsRequired          bool            `json:"isRequired"`
 	}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
 	c.IsRequired = raw.IsRequired
+	c.SupportedValueTypes = raw.SupportedValueTypes
 
 	var disc struct {
 		Type string `json:"type"`

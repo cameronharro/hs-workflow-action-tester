@@ -120,7 +120,8 @@ func TestParser(t *testing.T) {
 				Type:      "string",
 				FieldType: "text",
 			},
-			IsRequired: false,
+			SupportedValueTypes: []string{"STATIC_VALUE"},
+			IsRequired:          false,
 		},
 		{
 			TypeDefinition: StringTypeDefinition{
@@ -128,7 +129,8 @@ func TestParser(t *testing.T) {
 				Type:      "string",
 				FieldType: "text",
 			},
-			IsRequired: true,
+			SupportedValueTypes: []string{"STATIC_VALUE"},
+			IsRequired:          true,
 		},
 	}
 
@@ -164,7 +166,17 @@ func TestParser(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	if !slices.Equal(definition.Config.InputFields, expectedInputFields) {
+	if !slices.EqualFunc(definition.Config.InputFields, expectedInputFields, func(e1, e2 InputField) bool {
+		if e1.IsRequired != e2.IsRequired {
+			return false
+		}
+
+		if e1.TypeDefinition != e2.TypeDefinition {
+			return false
+		}
+
+		return slices.Equal(e1.SupportedValueTypes, e2.SupportedValueTypes)
+	}) {
 		t.Errorf("[ActionDef]: Inputfields: Expected %v, got %v", expectedInputFields, definition.Config.InputFields)
 	}
 	if !slices.Equal(definition.Config.Functions, expectedFunctions) {

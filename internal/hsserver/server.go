@@ -48,6 +48,7 @@ func NewHSServer(clientSecret string, port int, timeout time.Duration) *HSServer
 		select {
 		case <-ctx.Done():
 			server.callbackListener.Close()
+			server.resolutionQueue.close()
 			server.waitChan <- server.result.error
 		}
 

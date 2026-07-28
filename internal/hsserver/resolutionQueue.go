@@ -29,6 +29,7 @@ type resolutionQueue struct {
 	responsesProcessed *atomic.Int64
 	payloadChan        chan<- testPayload
 	responseChan       chan<- testResponse
+	close              func()
 }
 
 func newResolutionQueue(server *HSServer) *resolutionQueue {
@@ -37,16 +38,21 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 	testsInitiated := &atomic.Int64{}
 	responsesProcessed := &atomic.Int64{}
 	allTestsBegun := &atomic.Bool{}
+	ctx, cancelFunc := context.WithCancel(server.ctx)
+	doneChan := make(chan struct{})
+	closeFunc := func() {
+		cancelFunc()
+		<-doneChan
+	}
 	resolutionQueue := resolutionQueue{
 		payloadChan:        payloadChan,
 		responseChan:       responseChan,
 		allTestsBegun:      allTestsBegun,
 		testsInitiated:     testsInitiated,
 		responsesProcessed: responsesProcessed,
+		close:              closeFunc,
 	}
-
 	go func() {
-		ctx, cancelFunc := context.WithCancel(server.ctx)
 		defer cancelFunc()
 		payloads := map[string]testPayload{}
 
@@ -57,7 +63,6 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 				payloads[payload.CallbackId] = payload
 
 			case response := <-responseChan:
-
 				payload, ok := payloads[response.CallbackId]
 				if !ok {
 					server.AddResult(fmt.Errorf("Missing testCase for callback: %s", response.CallbackId))
@@ -74,6 +79,8 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 
 				responsesProcessed.Add(1)
 				delete(payloads, response.CallbackId)
+			case <-ctx.Done():
+				break ProcessingLoop
 			case <-time.After(1 * time.Second):
 				if allTestsBegun.Load() && (ctx.Err() != nil || responsesProcessed.Load() == testsInitiated.Load()) {
 					break ProcessingLoop
@@ -101,6 +108,7 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 			)
 		}
 		server.close()
+		doneChan <- struct{}{}
 	}()
 
 	return &resolutionQueue
@@ -109,36 +117,50 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 var asyncSignal = errors.New("Resolution will be asynchronous, ignore")
 
 func checkResponseAgainstPayload(payload testPayload, response testResponse) error {
-	var outputFields map[string]any
-	if postActionFunc := payload.ActionDef.GetPostActionFunction(); postActionFunc != nil {
-		postActionCallback, jsErr := jshelper.RunPostActionFunction(
-			response.ResponseBody,
-			postActionFunc.SourceCode(),
-		)
-		if jsErr != nil {
+	switch test := payload.TestCase.Test.(type) {
+	case testcase.ActionTest:
+		var outputFields map[string]any
+		if postActionFunc := payload.ActionDef.GetPostActionFunction(); postActionFunc != nil {
+			postActionCallback, jsErr := jshelper.RunPostActionFunction(
+				response.ResponseBody,
+				postActionFunc.SourceCode(),
+			)
+			if jsErr != nil {
+				return &TestCaseError{
+					testCase: payload.TestCase,
+					error:    jsErr,
+				}
+			}
+			outputFields = postActionCallback.OutputFields
+		} else if rawOutputFields, ok := response.ResponseBody["outputFields"]; ok {
+			outputFields, ok = rawOutputFields.(map[string]any)
+		}
+
+		hsExState, stateErr := getExecutionState(outputFields["hs_execution_state"])
+		if stateErr != nil {
 			return &TestCaseError{
 				testCase: payload.TestCase,
-				error:    jsErr,
+				error:    stateErr,
 			}
 		}
-		outputFields = postActionCallback.OutputFields
+		if slices.Contains([]hsExecutionState{Async, Block}, hsExState) {
 			return asyncSignal
 		}
-	}
-	if slices.Contains([]hsExecutionState{Async, Block}, hsExState) {
-		return fmt.Errorf("Resolution will be asynchronous, ignore")
-	}
 
-	executionRuleLabel := payload.ActionDef.GetMatchingExecutionRule(outputFields)
-	if executionRuleLabel != payload.TestCase.ExpectedExecutionRule {
-		return &TestCaseError{
-			testCase: payload.TestCase,
-			error: fmt.Errorf(
-				"Expected execution label %s, received %s",
-				payload.TestCase.ExpectedExecutionRule,
-				executionRuleLabel,
-			),
+		executionRuleLabel := payload.ActionDef.GetMatchingExecutionRule(outputFields)
+		if executionRuleLabel != test.ExpectedExecutionRule {
+			return &TestCaseError{
+				testCase: payload.TestCase,
+				error: fmt.Errorf(
+					"Expected execution label %s, received %s",
+					test.ExpectedExecutionRule,
+					executionRuleLabel,
+				),
+			}
 		}
+		return nil
+	case testcase.OptionTest:
+		return fmt.Errorf("Option Test not implemented yet for checking payload")
 	}
-	return nil
+	return fmt.Errorf("Unknown test type")
 }

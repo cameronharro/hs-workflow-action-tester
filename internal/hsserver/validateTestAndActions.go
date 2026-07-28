@@ -29,28 +29,36 @@ func validateCaseAgainstDef(
 	actionDef actiondefinition.ActionDefinition,
 ) error {
 	var resultErr error
-	if err := testCaseMatchesObjectType(testCase, actionDef); err != nil {
-		resultErr = errors.Join(resultErr, err)
-	}
+	switch test := testCase.Test.(type) {
+	case testcase.ActionTest:
 
-	for _, actionInput := range actionDef.Config.InputFields {
-		if err := testCaseHasRequiredInput(testCase, actionInput); err != nil {
+		if err := testCaseMatchesObjectType(test, actionDef); err != nil {
 			resultErr = errors.Join(resultErr, err)
 		}
-	}
 
-	if err := testCaseInputsMatchTypes(testCase, actionDef); err != nil {
-		resultErr = errors.Join(resultErr, err)
+		for _, actionInput := range actionDef.Config.InputFields {
+			if err := testCaseHasRequiredInput(test, actionInput); err != nil {
+				resultErr = errors.Join(resultErr, err)
+			}
+		}
+
+		if err := testCaseInputsMatchTypes(test, actionDef); err != nil {
+			resultErr = errors.Join(resultErr, err)
+		}
+	case testcase.OptionTest:
+		return fmt.Errorf("Option test validation not implemented yet")
+	default:
+		return fmt.Errorf("unknown testcase type for validation")
 	}
 
 	return resultErr
 }
 
 func testCaseHasRequiredInput(
-	testCase testcase.TestCase,
+	actionTest testcase.ActionTest,
 	actionInput actiondefinition.InputField,
 ) error {
-	_, testCaseHasInput := testCase.InputFields[actionInput.TypeDefinition.GetName()]
+	_, testCaseHasInput := actionTest.InputFields[actionInput.TypeDefinition.GetName()]
 	if !testCaseHasInput && actionInput.IsRequired {
 		return fmt.Errorf("Missing required field %s", actionInput.TypeDefinition.GetName())
 	}
@@ -58,7 +66,7 @@ func testCaseHasRequiredInput(
 }
 
 func testCaseMatchesObjectType(
-	testCase testcase.TestCase,
+	actionTest testcase.ActionTest,
 	actionDef actiondefinition.ActionDefinition,
 ) error {
 	allowsAllObjects := len(actionDef.Config.ObjectTypes) == 0
@@ -66,19 +74,19 @@ func testCaseMatchesObjectType(
 		return nil
 	}
 
-	if slices.Contains(actionDef.Config.ObjectTypes, testCase.ObjectType) {
+	if slices.Contains(actionDef.Config.ObjectTypes, actionTest.ObjectType) {
 		return nil
 	}
 
-	return fmt.Errorf("objectType %s is not in configured permitted objects: %v", testCase.ObjectType, actionDef.Config.ObjectTypes)
+	return fmt.Errorf("objectType %s is not in configured permitted objects: %v", actionTest.ObjectType, actionDef.Config.ObjectTypes)
 }
 
 func testCaseInputsMatchTypes(
-	testCase testcase.TestCase,
+	actionTest testcase.ActionTest,
 	actionDef actiondefinition.ActionDefinition,
 ) error {
 	var resultErr error
-	for key, value := range testCase.InputFields {
+	for key, value := range actionTest.InputFields {
 		actionInputIdx := slices.IndexFunc(actionDef.Config.InputFields, func(field actiondefinition.InputField) bool {
 			return field.TypeDefinition.GetName() == key
 		})

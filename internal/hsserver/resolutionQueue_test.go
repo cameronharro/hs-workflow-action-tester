@@ -64,8 +64,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:             "success",
-							ExpectedExecutionRule: "Success",
+							TestLabel: "success",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "Success",
+							},
 						},
 						ActionDef: actionDef,
 					},
@@ -85,8 +87,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "456",
 						TestCase: testcase.TestCase{
-							TestLabel:             "failure",
-							ExpectedExecutionRule: "Failure",
+							TestLabel: "failure",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "Failure",
+							},
 						},
 						ActionDef: actionDef,
 					},
@@ -106,8 +110,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "789",
 						TestCase: testcase.TestCase{
-							TestLabel:             "blank",
-							ExpectedExecutionRule: "",
+							TestLabel: "blank",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "",
+							},
 						},
 						ActionDef: actionDef,
 					},
@@ -133,8 +139,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:             "success",
-							ExpectedExecutionRule: "Success",
+							TestLabel: "success",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "Success",
+							},
 						},
 						ActionDef: actionDef,
 					},
@@ -150,8 +158,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:             "success",
-							ExpectedExecutionRule: "Success",
+							TestLabel: "success",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "Success",
+							},
 						},
 						ActionDef: actionDef,
 					},
@@ -185,8 +195,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:             "success",
-							ExpectedExecutionRule: "Success",
+							TestLabel: "success",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "Success",
+							},
 						},
 						ActionDef: actionDef,
 					},
@@ -221,8 +233,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:             "success",
-							ExpectedExecutionRule: "Success",
+							TestLabel: "success",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "Success",
+							},
 						},
 						ActionDef: actionDef,
 					},
@@ -248,8 +262,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:             "success",
-							ExpectedExecutionRule: "Success",
+							TestLabel: "success",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "Success",
+							},
 						},
 						ActionDef: actionDefWithPostFunction,
 					},
@@ -270,8 +286,10 @@ func TestResolutionQueue(t *testing.T) {
 					payload: testPayload{
 						CallbackId: "123",
 						TestCase: testcase.TestCase{
-							TestLabel:             "success",
-							ExpectedExecutionRule: "Success",
+							TestLabel: "success",
+							Test: testcase.ActionTest{
+								ExpectedExecutionRule: "Success",
+							},
 						},
 						ActionDef: actionDefWithInvalidPostFunction,
 					},
@@ -289,7 +307,7 @@ func TestResolutionQueue(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
 			server := NewHSServer("asdfg", rand.Intn(49151-1024)+1024, 1*time.Second)
-			queue := newResolutionQueue(server)
+			queue := server.resolutionQueue
 			for _, cycle := range testCase.reqResCycles {
 				go func() {
 					queue.payloadChan <- cycle.payload

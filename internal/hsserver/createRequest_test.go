@@ -35,12 +35,14 @@ func TestCreateRequest(t *testing.T) {
 				},
 			},
 			testCase: testcase.TestCase{
-				InputFields: map[string]any{
-					"foo": "bar",
+				Test: testcase.ActionTest{
+					InputFields: map[string]any{
+						"foo": "bar",
+					},
+					ObjectID:   1234,
+					ObjectType: "CONTACT",
 				},
-				ObjectID:   1234,
-				ObjectType: "CONTACT",
-				PortalID:   11,
+				PortalID: 11,
 			},
 			expectErr: false,
 			expectedReq: &http.Request{
@@ -69,12 +71,14 @@ func TestCreateRequest(t *testing.T) {
 				},
 			},
 			testCase: testcase.TestCase{
-				InputFields: map[string]any{
-					"foo": "bar",
+				Test: testcase.ActionTest{
+					InputFields: map[string]any{
+						"foo": "bar",
+					},
+					ObjectID:   1234,
+					ObjectType: "CONTACT",
 				},
-				ObjectID:   1234,
-				ObjectType: "CONTACT",
-				PortalID:   11,
+				PortalID: 11,
 			},
 			expectErr: false,
 			expectedReq: &http.Request{

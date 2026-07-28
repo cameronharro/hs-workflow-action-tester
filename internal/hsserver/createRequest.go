@@ -69,16 +69,16 @@ func getRequestData(
 	actionDef actiondefinition.ActionDefinition,
 	testCase testcase.TestCase,
 ) (method, url, callbackId string, headers map[string]string, serializedBody []byte, err error) {
+	type Origin struct {
+		PortalID int `json:"portalId"`
+	}
+
 	switch test := testCase.Test.(type) {
 	case testcase.ActionTest:
-		type Origin struct {
-			PortalID int `json:"portalId"`
-		}
 		type Object struct {
 			ObjectID   int    `json:"objectId"`
 			ObjectType string `json:"objectType"`
 		}
-
 		callbackId = fmt.Sprintf("ap-%d-%d-0-1", rand.Int(), rand.Int())
 		method = "POST"
 		url = actionDef.Config.ActionURL
@@ -143,6 +143,65 @@ func getRequestData(
 
 		}
 	case testcase.OptionTest:
+		method = "POST"
+		url = actionDef.Config.ActionURL
+		if test.OptionsURL != "" {
+			url = test.OptionsURL
+		}
+		headers = map[string]string{}
+
+		origin := Origin{
+			PortalID: testCase.PortalID,
+		}
+
+		if preOptionFunction := actionDef.GetPreOptionFunction(test.InputFieldName); preOptionFunction != nil {
+			jsCallback, err := jshelper.RunPreOptionFunction(
+				jshelper.PreOptionEvent{
+					WebhookURL:     url,
+					InputFields:    test.InputFields,
+					InputFieldName: test.InputFieldName,
+					ObjectTypeID:   test.ObjectTypeID,
+					Origin:         origin,
+				},
+				preOptionFunction.SourceCode(),
+			)
+			if err != nil {
+				return "", "", "", nil, nil, err
+			}
+
+			method = string(jsCallback.HttpMethod)
+			url = jsCallback.WebhookURL
+			if jsCallback.HttpHeaders != nil {
+				headers = jsCallback.HttpHeaders
+			}
+			headers["content-type"] = jsCallback.ContentType
+			headers["accept"] = jsCallback.Accept
+
+			serializedBody, err = json.Marshal(jsCallback.Body)
+			if err != nil {
+				return "", "", "", nil, nil, err
+			}
+
+		} else {
+			type Body struct {
+				InputFields    map[string]testcase.OptionInputField `json:"inputFields"`
+				InputFieldName string                               `json:"inputFieldName"`
+				ObjectTypeID   string                               `json:"objectTypeId"`
+				Origin         Origin                               `json:"origin"`
+			}
+			body := Body{
+				InputFields:    test.InputFields,
+				InputFieldName: test.InputFieldName,
+				ObjectTypeID:   test.ObjectTypeID,
+				Origin:         origin,
+			}
+			serializedBody, err = json.Marshal(body)
+			if err != nil {
+				return "", "", "", nil, nil, err
+			}
+
+		}
+		return method, url, "", headers, serializedBody, nil
 	default:
 		return "", "", "", nil, nil, fmt.Errorf("Unknown test type: %v", testCase.Test)
 	}

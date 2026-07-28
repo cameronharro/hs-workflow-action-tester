@@ -1,6 +1,8 @@
 package actiondefinition
 
-import "slices"
+import (
+	"slices"
+)
 
 type FunctionType string
 
@@ -63,4 +65,30 @@ func (f OptionFunction) Type() FunctionType {
 
 func (f OptionFunction) SourceCode() string {
 	return f.FunctionSource
+}
+
+func (d ActionDefinition) getOptionFunction(t FunctionType, inputFieldName string) Function {
+	if !slices.Contains([]FunctionType{PreFetchOptions, PostFetchOptions}, t) {
+		return nil
+	}
+
+	index := slices.IndexFunc(d.Config.Functions, func(ele Function) bool {
+		optFunction, ok := ele.(OptionFunction)
+		if !ok {
+			return false
+		}
+		return optFunction.FunctionType == t && optFunction.Id == inputFieldName
+	})
+	if index == -1 {
+		return nil
+	}
+	return d.Config.Functions[index]
+}
+
+func (d ActionDefinition) GetPreOptionFunction(inputFieldName string) Function {
+	return d.getOptionFunction(PreFetchOptions, inputFieldName)
+}
+
+func (d ActionDefinition) GetPostOptionFunction(inputFieldName string) Function {
+	return d.getOptionFunction(PostFetchOptions, inputFieldName)
 }

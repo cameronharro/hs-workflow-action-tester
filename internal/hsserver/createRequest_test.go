@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -26,9 +27,9 @@ func TestCreateRequest(t *testing.T) {
 		expectedReq *http.Request
 	}
 
-	testCases := []TestCase{
+	actionTestCases := []TestCase{
 		{
-			label: "working baseline",
+			label: "actions - working baseline",
 			actionDef: actiondefinition.ActionDefinition{
 				Config: actiondefinition.ActionConfig{
 					ActionURL: "http://localhost:8000/contacts",
@@ -56,7 +57,7 @@ func TestCreateRequest(t *testing.T) {
 			},
 		},
 		{
-			label: "mutates with function",
+			label: "actions - mutates with function",
 			actionDef: actiondefinition.ActionDefinition{
 				Config: actiondefinition.ActionConfig{
 					ActionURL: "http://localhost:8000/contacts",
@@ -92,8 +93,81 @@ func TestCreateRequest(t *testing.T) {
 		},
 	}
 
+	optionTestCases := []TestCase{
+		{
+			label: "options - working baseline",
+			actionDef: actiondefinition.ActionDefinition{
+				Config: actiondefinition.ActionConfig{
+					ActionURL: "http://localhost:8000/contacts",
+				},
+			},
+			testCase: testcase.TestCase{
+				Test: testcase.OptionTest{
+					InputFieldName: "custom_enum",
+					InputFields: map[string]testcase.OptionInputField{
+						"foo": testcase.StaticValueInputField{
+							FieldType: "STATIC_VALUE",
+							Value:     "bar",
+						},
+					},
+					ObjectTypeID: "0-1",
+				},
+				PortalID: 11,
+			},
+			expectErr: false,
+			expectedReq: &http.Request{
+				Method: "POST",
+				URL: &url.URL{
+					Host:   "localhost:8000",
+					Path:   "/contacts",
+					Scheme: "http",
+				},
+				Body: io.NopCloser(bytes.NewBufferString(`{"inputFieldName":"custom_enum","objectTypeId":"0-1","origin":{"portalId":11},"inputFields":{"foo":{"type":"STATIC_VALUE","value":"bar"}}}`)),
+			},
+		},
+		{
+			label: "options - mutates with function",
+			actionDef: actiondefinition.ActionDefinition{
+				Config: actiondefinition.ActionConfig{
+					ActionURL: "http://localhost:8000/contacts",
+					Functions: []actiondefinition.Function{
+						actiondefinition.OptionFunction{
+							FunctionType: actiondefinition.PreFetchOptions,
+							Id:           "custom_enum",
+							FunctionSource: `exports.main = (event, callback) => {
+								return callback({webhookUrl: "https://google.com", body: event.inputFields, httpMethod: "PATCH"})
+							}`,
+						},
+					},
+				},
+			},
+			testCase: testcase.TestCase{
+				Test: testcase.OptionTest{
+					InputFieldName: "custom_enum",
+					InputFields: map[string]testcase.OptionInputField{
+						"foo": testcase.StaticValueInputField{
+							FieldType: "STATIC_VALUE",
+							Value:     "bar",
+						},
+					},
+					ObjectTypeID: "0-1",
+				},
+				PortalID: 11,
+			},
+			expectErr: false,
+			expectedReq: &http.Request{
+				Method: "PATCH",
+				URL: &url.URL{
+					Host:   "google.com",
+					Scheme: "https",
+				},
+				Body: io.NopCloser(bytes.NewBufferString(`{"foo":{"type":"STATIC_VALUE","value":"bar"}}`)),
+			},
+		},
+	}
+
 	server := NewHSServer("asdfaegwagfasgrasef", 8080, 1*time.Second)
-	for _, testCase := range testCases {
+	for _, testCase := range slices.Concat(actionTestCases, optionTestCases) {
 		t.Run(testCase.label, func(t *testing.T) {
 			ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second)
 			defer cancelFunc()

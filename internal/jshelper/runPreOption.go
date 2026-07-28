@@ -3,23 +3,18 @@ package jshelper
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
 )
 
 type PreOptionEvent struct {
 	WebhookURL string `json:"webhookUrl"`
-	CallbackID string `json:"callbackId"`
 	Origin     struct {
 		PortalID int `json:"portalId"`
 	} `json:"origin"`
-	Context struct {
-		Source     string `json:"source"`
-		WorkflowID int    `json:"workflowId"`
-	} `json:"context"`
-	Object struct {
-		ObjectID   int    `json:"objectId"`
-		ObjectType string `json:"objectType"`
-	} `json:"object"`
-	InputFields map[string]any `json:"inputFields"`
+	ObjectTypeID   string                               `json:"objectTypeId"`
+	InputFieldName string                               `json:"inputFieldName"`
+	InputFields    map[string]testcase.OptionInputField `json:"inputFields"`
 }
 
 func (payload PreOptionEvent) getEventType() FunctionType {

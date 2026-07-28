@@ -1,28 +1,55 @@
 [
   {
     "testLabel": "1",
+    "type": "action",
     "actionUID": "test_action",
-    "actionURL": "http://localhost:3000",
-    "inputFields": {
-      "label": "Brian Halligan",
-      "value": 1234
-    },
-    "objectID": 123,
-    "objectType": "CONTACT",
     "portalID": 111,
-    "expectedExecutionRule": "Success"
+    "test": {
+      "actionURL": "http://localhost:3000",
+      "inputFields": {
+        "label": "Brian Halligan",
+        "value": 1234
+      },
+      "objectID": 123,
+      "objectType": "CONTACT",
+      "expectedExecutionRule": "Success"
+    }
   },
   {
     "testLabel": "2",
+    "type": "action",
     "actionUID": "new_action",
-    "actionURL": "https://api.hubapi.com/crm",
-    "inputFields": {
-      "label": "Maria Johnson",
-      "value": 9876
-    },
-    "objectID": 987,
-    "objectType": "CONTACT",
     "portalID": 222,
-    "expectedExecutionRule": "Failure"
+    "test": {
+      "actionURL": "https://api.hubapi.com/crm",
+      "inputFields": {
+        "label": "Maria Johnson",
+        "value": 9876
+      },
+      "objectID": 987,
+      "objectType": "CONTACT",
+      "expectedExecutionRule": "Failure"
+    }
+  },
+  {
+    "testLabel": "options",
+    "actionUID": "old_action",
+    "portalID": 222,
+    "type": "option",
+    "test": {
+      "optionsURL": "https://api.hubapi.com/crm",
+      "inputFieldName": "custom_enum",
+      "inputFields": {
+        "name": {
+          "type": "OBJECT_PROPERTY",
+          "propertyName": "firstname"
+        },
+        "status": {
+          "type": "STATIC_VALUE",
+          "value": "active"
+        }
+      },
+      "objectTypeID": "0-1"
+    }
   }
 ]

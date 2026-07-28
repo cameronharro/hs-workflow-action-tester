@@ -63,16 +63,21 @@ func (t *OptionTest) UnmarshalJSON(data []byte) error {
 		var optionInputField OptionInputField
 		switch peek.FieldType {
 		case ObjectProperty:
-			optionInputField = ObjectPropertyInputField{}
+			objPropField := ObjectPropertyInputField{}
+			err = json.Unmarshal(v, &objPropField)
+			if err != nil {
+				return err
+			}
+			optionInputField = objPropField
 		case StaticValue:
-			optionInputField = StaticValueInputField{}
+			staticValField := StaticValueInputField{}
+			err = json.Unmarshal(v, &staticValField)
+			if err != nil {
+				return err
+			}
+			optionInputField = staticValField
 		default:
 			return fmt.Errorf("Unknown Option Input Field Type: %s", peek.FieldType)
-		}
-
-		err = json.Unmarshal(v, &optionInputField)
-		if err != nil {
-			return err
 		}
 
 		t.InputFields[k] = optionInputField

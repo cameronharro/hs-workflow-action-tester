@@ -1,14 +1,17 @@
 [
   {
     "testLabel": "1",
+    "type": "action",
     "actionUID": "test_action",
-    "actionURL": "http://localhost:3000",
-    "inputFields": {
-      "label": "Brian Halligan",
-      "value": 1234
-    },
-    "objectID": 123,
-    "objectType": "CONTACT",
-    "expectedExecutionLabel": "Success"
+    "test": {
+      "actionURL": "http://localhost:3000",
+      "inputFields": {
+        "label": "Brian Halligan",
+        "value": 1234
+      },
+      "objectID": 123,
+      "objectType": "CONTACT",
+      "expectedExecutionRule": "Success"
+    }
   }
 ]

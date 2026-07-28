@@ -35,16 +35,21 @@ func (t *TestCase) UnmarshalJSON(data []byte) error {
 	var Test Test
 	switch peek.TestType {
 	case Action:
-		Test = ActionTest{}
+		actionTest := ActionTest{}
+		err = json.Unmarshal(peek.Test, &actionTest)
+		if err != nil {
+			return err
+		}
+		Test = actionTest
 	case Option:
-		Test = OptionTest{}
+		optionTest := OptionTest{}
+		err = json.Unmarshal(peek.Test, &optionTest)
+		if err != nil {
+			return err
+		}
+		Test = optionTest
 	default:
 		return fmt.Errorf("Unknown Test Type: %s", peek.TestType)
-	}
-
-	err = json.Unmarshal(peek.Test, &Test)
-	if err != nil {
-		return err
 	}
 
 	t.Test = Test

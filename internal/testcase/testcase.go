@@ -34,14 +34,14 @@ func (t *TestCase) UnmarshalJSON(data []byte) error {
 
 	var Test Test
 	switch peek.TestType {
-	case Action:
+	case ActionTestType:
 		actionTest := ActionTest{}
 		err = json.Unmarshal(peek.Test, &actionTest)
 		if err != nil {
 			return err
 		}
 		Test = actionTest
-	case Option:
+	case OptionTestType:
 		optionTest := OptionTest{}
 		err = json.Unmarshal(peek.Test, &optionTest)
 		if err != nil {
@@ -59,8 +59,8 @@ func (t *TestCase) UnmarshalJSON(data []byte) error {
 type TestType string
 
 const (
-	Action TestType = "action"
-	Option TestType = "option"
+	ActionTestType TestType = "action"
+	OptionTestType TestType = "option"
 )
 
 type Test interface {

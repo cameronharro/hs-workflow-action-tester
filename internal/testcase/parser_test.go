@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"slices"
 	"testing"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
@@ -28,7 +29,7 @@ func TestParse(t *testing.T) {
 					TestLabel: "1",
 					ActionUID: "test_action",
 					PortalID:  111,
-					TestType:  testcase.Action,
+					TestType:  testcase.ActionTestType,
 					Test: testcase.ActionTest{
 
 						ActionURL: "http://localhost:3000",
@@ -45,7 +46,7 @@ func TestParse(t *testing.T) {
 					TestLabel: "2",
 					ActionUID: "new_action",
 					PortalID:  222,
-					TestType:  testcase.Action,
+					TestType:  testcase.ActionTestType,
 					Test: testcase.ActionTest{
 						ActionURL: "https://api.hubapi.com/crm",
 						InputFields: map[string]any{
@@ -61,7 +62,7 @@ func TestParse(t *testing.T) {
 					TestLabel: "options",
 					ActionUID: "old_action",
 					PortalID:  222,
-					TestType:  testcase.Option,
+					TestType:  testcase.OptionTestType,
 					Test: testcase.OptionTest{
 						OptionsURL:     "https://api.hubapi.com/crm",
 						InputFieldName: "custom_enum",
@@ -76,6 +77,9 @@ func TestParse(t *testing.T) {
 							},
 						},
 						ObjectTypeID: "0-1",
+						ExpectedOptions: []testcase.Option{
+							{Label: "foo", Value: "bar"},
+						},
 					},
 				},
 			},
@@ -185,6 +189,11 @@ func optTestEq(target testcase.OptionTest, result any) error {
 	if !maps.Equal(target.InputFields, resultTest.InputFields) {
 		err = mismatchedErr(err, "inputFields", target.InputFields, resultTest.InputFields)
 	}
+
+	if !slices.Equal(target.ExpectedOptions, resultTest.ExpectedOptions) {
+		err = mismatchedErr(err, "expectedOptions", target.ExpectedOptions, resultTest.ExpectedOptions)
+	}
+
 	return err
 }
 

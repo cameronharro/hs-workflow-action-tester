@@ -7,10 +7,16 @@ import (
 )
 
 type OptionTest struct {
-	ObjectTypeID   string `json:"objectTypeId"`
-	OptionsURL     string `json:"optionsURL"`
-	InputFieldName string `json:"inputFieldName"`
-	InputFields    map[string]OptionInputField
+	ObjectTypeID    string `json:"objectTypeId"`
+	OptionsURL      string `json:"optionsURL"`
+	InputFieldName  string `json:"inputFieldName"`
+	InputFields     map[string]OptionInputField
+	ExpectedOptions []Option `json:"expectedOptions"`
+}
+
+type Option struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 func (t OptionTest) Validate() error {
@@ -35,10 +41,11 @@ func (t OptionTest) Validate() error {
 
 func (t *OptionTest) UnmarshalJSON(data []byte) error {
 	type Peek struct {
-		ObjectTypeID   string `json:"objectTypeId"`
-		OptionsURL     string `json:"optionsURL"`
-		InputFieldName string `json:"inputFieldName"`
-		InputFields    map[string]json.RawMessage
+		ObjectTypeID    string `json:"objectTypeId"`
+		OptionsURL      string `json:"optionsURL"`
+		InputFieldName  string `json:"inputFieldName"`
+		InputFields     map[string]json.RawMessage
+		ExpectedOptions []Option `json:"expectedOptions"`
 	}
 	peek := Peek{}
 	err := json.Unmarshal(data, &peek)
@@ -50,6 +57,7 @@ func (t *OptionTest) UnmarshalJSON(data []byte) error {
 	t.OptionsURL = peek.OptionsURL
 	t.InputFieldName = peek.InputFieldName
 	t.InputFields = map[string]OptionInputField{}
+	t.ExpectedOptions = peek.ExpectedOptions
 	for k, v := range peek.InputFields {
 		type Peek struct {
 			FieldType OptionInputFieldType `json:"type"`

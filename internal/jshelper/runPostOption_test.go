@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cameronharro/hs-workflow-tester/internal/jshelper"
+	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
 )
 
 func TestRunPostOptionFunction(t *testing.T) {
@@ -51,7 +52,7 @@ func TestRunPostOptionFunction(t *testing.T) {
 				return callback({options: []})
 			}`,
 			ExpectErr: false,
-			ExpectVal: jshelper.PostOptionCallback{Options: []jshelper.Option{}},
+			ExpectVal: jshelper.PostOptionCallback{Options: []testcase.Option{}},
 		},
 		{
 			Name: "Returns valid options",
@@ -59,20 +60,22 @@ func TestRunPostOptionFunction(t *testing.T) {
 				return callback({options: [{label:"Big Widget", "description": "", value: "big_widget"}]})
 			}`,
 			ExpectErr: false,
-			ExpectVal: jshelper.PostOptionCallback{Options: []jshelper.Option{{Label: "Big Widget", Value: "big_widget"}}},
+			ExpectVal: jshelper.PostOptionCallback{Options: []testcase.Option{{Label: "Big Widget", Value: "big_widget"}}},
 		},
 		{
 			Name: "Transforms receieved payload",
 			Event: jshelper.PostOptionEvent{
-				FieldKey:     "test",
-				ResponseBody: `["block","async","success"]`,
+				FieldKey: "test",
+				ResponseBody: map[string]any{
+					"opts": []string{"block", "async", "success"},
+				},
 			},
 			Function: `exports.main = (event, callback) => {
-				const opts = JSON.parse(event.responseBody)
+				const { opts } = event.responseBody
 				return callback({options: opts.map(ele => ({label: ele.toUpperCase(), value: ele}))})
 			}`,
 			ExpectErr: false,
-			ExpectVal: jshelper.PostOptionCallback{Options: []jshelper.Option{
+			ExpectVal: jshelper.PostOptionCallback{Options: []testcase.Option{
 				{Label: "BLOCK", Value: "block"},
 				{Label: "ASYNC", Value: "async"},
 				{Label: "SUCCESS", Value: "success"},

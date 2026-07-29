@@ -15,8 +15,9 @@ type OptionTest struct {
 }
 
 type Option struct {
-	Label string `json:"label"`
-	Value string `json:"value"`
+	Label       string `json:"label"`
+	Description string `json:"description"`
+	Value       string `json:"value"`
 }
 
 func (t OptionTest) Validate() error {

@@ -160,7 +160,57 @@ func checkResponseAgainstPayload(payload testPayload, response testResponse) err
 		}
 		return nil
 	case testcase.OptionTest:
-		return fmt.Errorf("Option Test not implemented yet for checking payload")
+		var options []testcase.Option
+		if postOptionsFunc := payload.ActionDef.GetPostOptionFunction(test.InputFieldName); postOptionsFunc != nil {
+			postOptionCallback, jsErr := jshelper.RunPostOptionFunction(
+				jshelper.PostOptionEvent{
+					FieldKey:     test.InputFieldName,
+					ResponseBody: response.ResponseBody,
+				},
+				postOptionsFunc.SourceCode(),
+			)
+			if jsErr != nil {
+				return &TestCaseError{
+					testCase: payload.TestCase,
+					error:    jsErr,
+				}
+			}
+			options = postOptionCallback.Options
+		} else if optsValue, ok := response.ResponseBody["options"]; ok {
+			if rawOpts, ok := optsValue.([]map[string]any); ok {
+				for _, rawOpt := range rawOpts {
+					opt := testcase.Option{}
+					if label, ok := rawOpt["label"]; ok {
+						if labelStr, ok := label.(string); ok {
+							opt.Label = labelStr
+						}
+					}
+					if value, ok := rawOpt["value"]; ok {
+						if valueStr, ok := value.(string); ok {
+							opt.Value = valueStr
+						}
+					}
+					if description, ok := rawOpt["description"]; ok {
+						if descriptionStr, ok := description.(string); ok {
+							opt.Description = descriptionStr
+						}
+					}
+					options = append(options, opt)
+				}
+			}
+		}
+
+		if !slices.Equal(options, test.ExpectedOptions) {
+			return &TestCaseError{
+				testCase: payload.TestCase,
+				error: fmt.Errorf(
+					"Expected options %v, received %v",
+					test.ExpectedOptions,
+					options,
+				),
+			}
+		}
+		return nil
 	}
 	return fmt.Errorf("Unknown test type")
 }

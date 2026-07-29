@@ -2,6 +2,7 @@ package hsserver
 
 import (
 	"math/rand"
+	"slices"
 	"testing"
 	"time"
 
@@ -40,22 +41,22 @@ func TestResolutionQueue(t *testing.T) {
 			},
 		},
 	}
-	actionDefWithPostFunction := actionDef
-	actionDefWithPostFunction.Config.Functions = []actiondefinition.Function{
+	actionDefWithPostActionFunction := actionDef
+	actionDefWithPostActionFunction.Config.Functions = []actiondefinition.Function{
 		actiondefinition.ActionFunction{
 			FunctionType:   actiondefinition.PostActionExecution,
 			FunctionSource: `exports.main = function(event, callback) { return callback({outputFields:{hs_execution_state:"SUCCESS",status:"success"}})}`,
 		},
 	}
-	actionDefWithInvalidPostFunction := actionDef
-	actionDefWithInvalidPostFunction.Config.Functions = []actiondefinition.Function{
+	actionDefWithInvalidPostActionFunction := actionDef
+	actionDefWithInvalidPostActionFunction.Config.Functions = []actiondefinition.Function{
 		actiondefinition.ActionFunction{
 			FunctionType:   actiondefinition.PostActionExecution,
 			FunctionSource: `exports.main = function(event, callback) { return {outputFields:{status:"success"}}}`,
 		},
 	}
 
-	testCases := []TestCase{
+	actionTestCases := []TestCase{
 		TestCase{
 			label:   "baseline working",
 			timeout: 5 * time.Second,
@@ -267,7 +268,7 @@ func TestResolutionQueue(t *testing.T) {
 								ExpectedExecutionRule: "Success",
 							},
 						},
-						ActionDef: actionDefWithPostFunction,
+						ActionDef: actionDefWithPostActionFunction,
 					},
 					responses: []testResponse{
 						testResponse{
@@ -291,7 +292,7 @@ func TestResolutionQueue(t *testing.T) {
 								ExpectedExecutionRule: "Success",
 							},
 						},
-						ActionDef: actionDefWithInvalidPostFunction,
+						ActionDef: actionDefWithInvalidPostActionFunction,
 					},
 					responses: []testResponse{
 						testResponse{
@@ -304,7 +305,174 @@ func TestResolutionQueue(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range testCases {
+	actionDefWithPostOptionFunction := actionDef
+	actionDefWithPostOptionFunction.Config.Functions = []actiondefinition.Function{
+		actiondefinition.OptionFunction{
+			FunctionType:   actiondefinition.PostFetchOptions,
+			Id:             "options_input",
+			FunctionSource: `exports.main = function(event, callback) { return callback({options:[{label: "Test", value: "test"}]})}`,
+		},
+	}
+	actionDefWithInvalidPostOptionFunction := actionDef
+	actionDefWithInvalidPostOptionFunction.Config.Functions = []actiondefinition.Function{
+		actiondefinition.OptionFunction{
+			FunctionType:   actiondefinition.PostFetchOptions,
+			Id:             "options_input",
+			FunctionSource: `exports.main = function(event, callback) { return {options:[{label: "Test", value: "test"}]}}`,
+		},
+	}
+
+	optionTestCases := []TestCase{
+		TestCase{
+			label:   "options - baseline working",
+			timeout: 5 * time.Second,
+			reqResCycles: []ReqResCycle{
+				{
+					payload: testPayload{
+						CallbackId: "123",
+						TestCase: testcase.TestCase{
+							TestLabel: "success",
+							Test: testcase.OptionTest{
+								ExpectedOptions: []testcase.Option{
+									{Label: "Test", Value: "test"},
+								},
+							},
+						},
+						ActionDef: actionDef,
+					},
+					responses: []testResponse{
+						{
+							CallbackId: "123",
+							ResponseBody: map[string]any{
+								"options": []map[string]any{
+									map[string]any{
+										"label": "Test",
+										"value": "test",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectErr: false,
+		},
+		TestCase{
+			label:   "options - error - bad response",
+			timeout: 5 * time.Second,
+			reqResCycles: []ReqResCycle{
+				{
+					payload: testPayload{
+						CallbackId: "123",
+						TestCase: testcase.TestCase{
+							TestLabel: "success",
+							Test: testcase.OptionTest{
+								ExpectedOptions: []testcase.Option{
+									{Label: "Test", Value: "test"},
+								},
+							},
+						},
+						ActionDef: actionDef,
+					},
+					responses: []testResponse{
+						{
+							CallbackId: "123",
+							ResponseBody: map[string]any{
+								"options": []map[string]any{
+									map[string]any{
+										"label": "Test Failure",
+										"value": "test_failure",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectErr: true,
+		},
+		TestCase{
+			label:   "options - error - no response",
+			timeout: 250 * time.Millisecond,
+			reqResCycles: []ReqResCycle{
+				{
+					payload: testPayload{
+						CallbackId: "123",
+						TestCase: testcase.TestCase{
+							TestLabel: "success",
+							Test: testcase.OptionTest{
+								ExpectedOptions: []testcase.Option{
+									{Label: "Test", Value: "test"},
+								},
+							},
+						},
+						ActionDef: actionDef,
+					},
+				},
+			},
+			expectErr: true,
+		},
+		TestCase{
+			label:   "options - basic POST_OPTION_EXECUTION function",
+			timeout: 250 * time.Millisecond,
+			reqResCycles: []ReqResCycle{
+				{
+					payload: testPayload{
+						CallbackId: "123",
+						TestCase: testcase.TestCase{
+							TestLabel: "success",
+							Test: testcase.OptionTest{
+								InputFieldName: "options_input",
+								ExpectedOptions: []testcase.Option{
+									{Label: "Test", Value: "test"},
+								},
+							},
+						},
+						ActionDef: actionDefWithPostOptionFunction,
+					},
+					responses: []testResponse{
+						{
+							CallbackId:   "123",
+							ResponseBody: map[string]any{},
+						},
+					},
+				},
+			},
+			expectErr: false,
+		},
+		TestCase{
+			label:   "options - error - invalid POST_OPTION_EXECUTION function",
+			timeout: 250 * time.Millisecond,
+			reqResCycles: []ReqResCycle{
+				{
+					payload: testPayload{
+						CallbackId: "123",
+						TestCase: testcase.TestCase{
+							TestLabel: "success",
+							Test: testcase.OptionTest{
+								InputFieldName: "options_input",
+								ExpectedOptions: []testcase.Option{
+									{Label: "Test", Value: "test"},
+								},
+							},
+						},
+						ActionDef: actionDefWithInvalidPostOptionFunction,
+					},
+					responses: []testResponse{
+						{
+							CallbackId: "123",
+							ResponseBody: map[string]any{
+								"options": []map[string]any{},
+							},
+						},
+					},
+				},
+			},
+			expectErr: true,
+		},
+	}
+
+	for _, testCase := range slices.Concat(actionTestCases, optionTestCases) {
 		t.Run(testCase.label, func(t *testing.T) {
 			server := NewHSServer("asdfg", rand.Intn(49151-1024)+1024, 1*time.Second)
 			queue := server.resolutionQueue

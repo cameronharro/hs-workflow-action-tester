@@ -2,25 +2,21 @@ package jshelper
 
 import (
 	"encoding/json"
+
+	"github.com/cameronharro/hs-workflow-tester/internal/testcase"
 )
 
 type PostOptionEvent struct {
-	FieldKey     string `json:"fieldKey"`
-	ResponseBody string `json:"responseBody"`
+	FieldKey     string         `json:"fieldKey"`
+	ResponseBody map[string]any `json:"responseBody"`
 }
 
 func (payload PostOptionEvent) getEventType() FunctionType {
 	return PostFetchOptions
 }
 
-type Option struct {
-	Label       string `json:"label"`
-	Description string `json:"description"`
-	Value       string `json:"value"`
-}
-
 type PostOptionCallback struct {
-	Options []Option
+	Options []testcase.Option
 }
 
 func (callback PostOptionCallback) getCallbackType() FunctionType {

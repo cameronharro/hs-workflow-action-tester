@@ -40,6 +40,16 @@
           "options": [],
           "type": "string"
         }
+      },
+      {
+        "isRequired": false,
+        "supportedValueTypes": ["STATIC_VALUE"],
+        "typeDefinition": {
+          "fieldType": "select",
+          "name": "options_field",
+          "type": "enumeration",
+          "optionsURL": "https://webhook.site/c5db800b-e3c3-4a16-af81-1e19f6d8b6a0/options"
+        }
       }
     ],
     "labels": {

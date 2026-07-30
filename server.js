@@ -15,7 +15,11 @@ const server = http.createServer((req, res) => {
       console.log(body);
       const obj = JSON.parse(body);
       let responseBody;
-      if (obj?.inputFields?.value === "1234") {
+      if (obj?.inputFieldName === "options_field") {
+        responseBody = JSON.stringify({
+          options: [{ label: "Test", value: "test" }],
+        });
+      } else if (obj?.inputFields?.value === "1234") {
         responseBody = JSON.stringify({
           outputFields: { status: "success", hs_execution_state: "SUCCESS" },
         });
@@ -27,6 +31,7 @@ const server = http.createServer((req, res) => {
           },
         });
       }
+      console.log({ responseBody });
       res.writeHead(201, {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(responseBody),

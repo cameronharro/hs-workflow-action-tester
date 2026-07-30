@@ -2,6 +2,7 @@ package hsserver
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -160,7 +161,7 @@ func checkResponseAgainstPayload(payload testPayload, response testResponse) err
 		}
 		return nil
 	case testcase.OptionTest:
-		var options []testcase.Option
+		options := []testcase.Option{}
 		if postOptionsFunc := payload.ActionDef.GetPostOptionFunction(test.InputFieldName); postOptionsFunc != nil {
 			postOptionCallback, jsErr := jshelper.RunPostOptionFunction(
 				jshelper.PostOptionEvent{
@@ -177,25 +178,19 @@ func checkResponseAgainstPayload(payload testPayload, response testResponse) err
 			}
 			options = postOptionCallback.Options
 		} else if optsValue, ok := response.ResponseBody["options"]; ok {
-			if rawOpts, ok := optsValue.([]map[string]any); ok {
-				for _, rawOpt := range rawOpts {
-					opt := testcase.Option{}
-					if label, ok := rawOpt["label"]; ok {
-						if labelStr, ok := label.(string); ok {
-							opt.Label = labelStr
-						}
-					}
-					if value, ok := rawOpt["value"]; ok {
-						if valueStr, ok := value.(string); ok {
-							opt.Value = valueStr
-						}
-					}
-					if description, ok := rawOpt["description"]; ok {
-						if descriptionStr, ok := description.(string); ok {
-							opt.Description = descriptionStr
-						}
-					}
-					options = append(options, opt)
+			data, err := json.Marshal(optsValue)
+			if err != nil {
+				return &TestCaseError{
+					testCase: payload.TestCase,
+					error:    err,
+				}
+			}
+
+			err = json.Unmarshal(data, &options)
+			if err != nil {
+				return &TestCaseError{
+					testCase: payload.TestCase,
+					error:    err,
 				}
 			}
 		}

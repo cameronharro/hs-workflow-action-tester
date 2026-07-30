@@ -38,7 +38,7 @@ func (s *HSServer) RunTestCase(
 		return
 	}
 
-	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancelFunc := context.WithTimeout(s.ctx, 10*time.Second)
 	defer cancelFunc()
 
 	req, callbackId, err := s.createRequest(ctx, actionDef, testCase)
@@ -70,6 +70,11 @@ func (s *HSServer) RunTestCase(
 	var responseJSON map[string]any
 	err = json.Unmarshal(responseBytes, &responseJSON)
 	if err != nil {
+		s.AddResult(&TestCaseError{testCase, err})
+		return
+	}
+
+	if err := s.ctx.Err(); err != nil {
 		s.AddResult(&TestCaseError{testCase, err})
 		return
 	}

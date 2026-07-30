@@ -46,7 +46,9 @@ func validateCaseAgainstDef(
 			resultErr = errors.Join(resultErr, err)
 		}
 	case testcase.OptionTest:
-		return fmt.Errorf("Option test validation not implemented yet")
+		if err := testCaseInputFieldNameValid(test, actionDef); err != nil {
+			resultErr = errors.Join(resultErr, err)
+		}
 	default:
 		return fmt.Errorf("unknown testcase type for validation")
 	}
@@ -130,4 +132,22 @@ func testCaseInputsMatchTypes(
 	}
 
 	return resultErr
+}
+
+func testCaseInputFieldNameValid(
+	optionTest testcase.OptionTest,
+	actiondDef actiondefinition.ActionDefinition,
+) error {
+	matchingFieldIdx := slices.IndexFunc(actiondDef.Config.InputFields, func(f actiondefinition.InputField) bool {
+		switch field := f.TypeDefinition.(type) {
+		case actiondefinition.EnumTypeDefinition:
+			return field.Name == optionTest.InputFieldName && (field.ExternalOptions || field.OptionsURL != "")
+		default:
+			return false
+		}
+	})
+	if matchingFieldIdx == -1 {
+		return fmt.Errorf("No enum field named %s that has external options/an optionsURL", optionTest.InputFieldName)
+	}
+	return nil
 }

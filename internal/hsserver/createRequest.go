@@ -43,7 +43,7 @@ func (s *HSServer) createRequest(
 		req.Header.Add(headerKey, headerValue)
 	}
 
-	req.Header.Add("x-hubspot-signature", "v2")
+	req.Header.Add("x-hubspot-signature-version", "v2")
 	req.Header.Add(
 		"X-HubSpot-Signature",
 		signRequestV2(

@@ -70,16 +70,12 @@ func newResolutionQueue(server *HSServer) *resolutionQueue {
 					continue
 				}
 
-				comparisonError := checkResponseAgainstPayload(payload, response)
-				if comparisonError != nil {
-					if errors.Is(comparisonError, asyncSignal) {
-						continue
-					}
-					server.AddResult(comparisonError)
-				}
-
-				responsesProcessed.Add(1)
 				delete(payloads, response.CallbackId)
+				comparisonError := checkResponseAgainstPayload(payload, response)
+				if errors.Is(comparisonError, asyncSignal) {
+					continue
+				}
+				server.AddResult(comparisonError)
 			case <-ctx.Done():
 				break ProcessingLoop
 			case <-time.After(1 * time.Second):

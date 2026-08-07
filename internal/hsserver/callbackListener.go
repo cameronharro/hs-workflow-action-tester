@@ -10,8 +10,8 @@ import (
 
 func startCallbackListener(s *HSServer, port int) *http.Server {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /{callbackId}/complete", singleCallbackHandleFunc(s.resolutionQueue.responseChan))
-	mux.HandleFunc("POST /complete", batchCallbackHandleFunc(s.resolutionQueue.responseChan))
+	mux.HandleFunc("POST /automation/actions/callbacks/2026-03/{callbackId}/complete", singleCallbackHandleFunc(s.resolutionQueue.responseChan))
+	mux.HandleFunc("POST /automation/actions/callbacks/2026-03/complete", batchCallbackHandleFunc(s.resolutionQueue.responseChan))
 	server := http.Server{
 		Handler: mux,
 		Addr:    fmt.Sprintf(":%d", port),

@@ -2,7 +2,9 @@
 
 ## Overview
 
-Testing HubSpot's custom workflow actions is cumbersome. Using this project, integration testing between custom workflow action definitions and your application can be done locally and automatically.
+Documentation for HubSpot's Custom Workflow Actions can be found [here](https://developers.hubspot.com/docs/api-reference/latest/automation/workflow-actions/custom-action-reference)
+
+Testing HubSpot's custom workflow actions is cumbersome. Using this project, integration testing between custom workflow action definitions and your application can be done locally.
 
 Upon making changes to either your application or your HubSpot custom action definition, they should be tested to ensure that the requests, responses, and callbacks match each others' expectations.
 
@@ -66,6 +68,8 @@ Clone this repo locally: `git clone https://github.com/cameronharro/hs-workflow-
 
 Install Go dependencies: `go mod install`
 
+Install CLI globally: `go install .`
+
 #### Test
 
 Run Go tests: `go test ./...`
@@ -75,6 +79,13 @@ Run the dummy server in one process: `node server.js`
 Run the tester (example config): `go run . -cases testCases.json -clientSecret 12345`
 
 ### Configuration
+
+Once you have the CLI installed globally, you can invoke the tool as `hs-workflow-tester [FLAGS]`
+
+1. Navigate to your HubSpot project
+2. Create some test cases as shown below
+3. Run your own app locally
+4. Invoke the tester pointing at your local app
 
 #### Tests
 

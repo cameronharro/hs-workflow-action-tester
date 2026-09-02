@@ -66,9 +66,9 @@ Supports evaluation against HubSpot's Execution Rules, which drive messages disp
 
 Clone this repo locally: `git clone https://github.com/cameronharro/hs-workflow-action-tester`
 
-Install Go dependencies: `go mod install`
+Install Go dependencies: `go mod download`
 
-Install CLI globally: `go install .`
+Install CLI globally: `go install .` (requires Go binaries to be accessible in your PATH)
 
 #### Test
 
